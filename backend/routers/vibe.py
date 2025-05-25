@@ -106,5 +106,5 @@ def get_vibe(request: VibeRequest) -> List[Dict[str, Union[str, float]]]:
 
     return [
         {"aspect": aspect, "value": value}
-        for aspect, value in vibe_data.model_dump().items() if aspect != "tempo"
+        for aspect, value in vibe_data.model_dump().items()
     ]

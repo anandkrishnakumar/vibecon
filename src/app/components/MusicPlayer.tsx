@@ -4,58 +4,72 @@ import { useState } from 'react';
 import { Image, Box, ActionIcon, Text } from '@mantine/core';
 import { IconPlayerPlay, IconPlayerPause } from '@tabler/icons-react';
 
-export default function MusicPlayer() {
+interface Track {
+  track_name: string;
+  artists: string[];
+  uri: string;
+  album_art_url: string;
+}
+
+interface MusicPlayerProps {
+  track?: Track | null;
+}
+
+export default function MusicPlayer({ track }: MusicPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Add track info (you can make this dynamic later)
-  const trackInfo = {
-    title: "Chateau",
-    artist: "Angus & Julia Stone",
+  const handlePlayPause = async () => {
+    if (!track) return;
+    
+    setIsLoading(true);
+    
+    try {
+      if (isPlaying) {
+        // Call pause endpoint
+        const response = await fetch(`http://localhost:8000/pause`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+        
+        if (response.ok) {
+          setIsPlaying(false);
+        } else {
+          console.error('Failed to pause playback');
+        }
+      } else {
+        // Call play endpoint with track URI
+        const response = await fetch(`http://localhost:8000/play`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ track_uri: track.uri })
+        });
+        
+        if (response.ok) {
+          setIsPlaying(true);
+        } else {
+          console.error('Failed to start playback');
+        }
+      }
+    } catch (error) {
+      console.error('Error calling API:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handlePlayPause = async () => {
-  setIsLoading(true);
-  
-  try {
-    const endpoint = isPlaying ? '/pause' : '/play';
-    
-    if (isPlaying) {
-      // Call pause endpoint
-      const response = await fetch(`http://localhost:8000/pause`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      
-      if (response.ok) {
-        setIsPlaying(false);
-      } else {
-        console.error('Failed to pause playback');
-      }
-    } else {
-      // Call play endpoint with track_id
-      const response = await fetch(`http://localhost:8000/play`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ track_uri: 'spotify:track:1tQtURCQmQnY5ZxJNTgXKR' }) // Replace with actual track ID
-      });
-      
-      if (response.ok) {
-        setIsPlaying(true);
-      } else {
-        console.error('Failed to start playback');
-      }
-    }
-  } catch (error) {
-    console.error('Error calling API:', error);
-  } finally {
-    setIsLoading(false);
-  }
-};
+  // Default track info when no track is provided
+  const defaultTrack = {
+    track_name: "No track selected",
+    artists: ["Select a track to play"],
+    album_art_url: "https://via.placeholder.com/400x400?text=No+Track"
+  };
+
+  const displayTrack = track || defaultTrack;
 
   return (
     <Box 
@@ -69,7 +83,7 @@ export default function MusicPlayer() {
       {/* Main album art */}
       <Image
         radius="md"
-        src="https://i.scdn.co/image/ab67616d0000b2736567f18f9a164a51e933cdad"
+        src={displayTrack.album_art_url}
         h="100%"
         fit="cover"
       />
@@ -87,10 +101,10 @@ export default function MusicPlayer() {
         p="md"
       >
         <Text size="lg" fw={600} c="white" truncate>
-          {trackInfo.title}
+          {displayTrack.track_name}
         </Text>
         <Text size="sm" c="rgba(255,255,255,0.8)" truncate>
-          {trackInfo.artist}
+          {displayTrack.artists.join(', ')}
         </Text>
       </Box>
       
@@ -106,6 +120,7 @@ export default function MusicPlayer() {
         style={{ transform: 'translate(-50%, -50%)' }}
         onClick={handlePlayPause}
         loading={isLoading}
+        disabled={!track}
       >
         {isPlaying ? (
           <IconPlayerPause size={30} color="white" />
@@ -114,7 +129,7 @@ export default function MusicPlayer() {
         )}
       </ActionIcon>
       
-      {/* Up next image */}
+      {/* Up next image - keeping as placeholder for now */}
       <Box
         pos="absolute"
         bottom={16}

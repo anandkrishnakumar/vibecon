@@ -1,7 +1,6 @@
 'use client';
 
 import Image from "next/image";
-
 import { useState } from "react";
 import { createTheme, MantineProvider } from "@mantine/core";
 import { Group } from "@mantine/core";
@@ -10,6 +9,19 @@ import LiveCam from "./components/LiveCam";
 import Spin from "./components/Spin";
 import VibeViz from "./components/VibeViz";
 import MusicPlayer from "./components/MusicPlayer";
+
+// Define interfaces at the top
+interface VibeData {
+  aspect: string;
+  value: number;
+}
+
+interface Track {
+  track_name: string;
+  artists: string[];
+  uri: string;
+  album_art_url: string;
+}
 
 const theme = createTheme({
   colorScheme: 'dark',
@@ -32,7 +44,26 @@ const theme = createTheme({
 });
 
 export default function Home() {
-  const [vibeData, setVibeData] = useState(null);
+  const [vibeData, setVibeData] = useState<VibeData[] | null>(null);
+  const [isSpinning, setIsSpinning] = useState(false);
+  const [currentTrack, setCurrentTrack] = useState<Track | null>(null);
+
+  const handleVibeDataChange = (data: VibeData[] | null) => {
+    setVibeData(data);
+  };
+
+  const handleSpinStateChange = (spinning: boolean) => {
+    setIsSpinning(spinning);
+  };
+
+  const handleTrackRecommendation = (track: Track | null) => {
+    setCurrentTrack(track);
+    if (track) {
+      console.log('Recommended track:', track);
+    } else {
+      console.log('No track recommendation available');
+    }
+  };
 
   return (
     <MantineProvider theme={theme}>
@@ -46,10 +77,14 @@ export default function Home() {
           priority
         />
         {/* <LiveCam /> */}
-        <Spin onVibeDataChange={setVibeData}/>
+        <Spin 
+          onVibeDataChange={handleVibeDataChange}
+          onSpinStateChange={handleSpinStateChange}
+          onTrackRecommendation={handleTrackRecommendation}
+        />
         <Group grow h={300}>
           <VibeViz data={vibeData}/>
-          <MusicPlayer />
+          <MusicPlayer track={currentTrack} />
         </Group>
       </div>
     </MantineProvider>

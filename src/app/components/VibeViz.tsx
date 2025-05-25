@@ -8,6 +8,7 @@ const mockData = [
   { aspect: 'acousticness', value: 0.3 },
   { aspect: 'instrumentalness', value: 0.2 },
   { aspect: 'valence', value: 0.6 },
+  { aspect: 'tempo', value: 120 },
 ];
 
 interface VibeData {
@@ -23,10 +24,13 @@ export default function VibeViz({ data }: VibeVizProps) {
   // Use API data if available, otherwise fall back to mock data
   const chartData = data || mockData;
 
+  // Remove tempo from the chart data
+  const filteredData = chartData.filter(item => item.aspect !== 'tempo');
+
   return (
     <BarChart
       h={300}
-      data={chartData}
+      data={filteredData}
       dataKey="aspect"
       type="stacked"
       orientation="vertical"

@@ -9,52 +9,89 @@ interface VibeData {
   value: number;
 }
 
+interface Track {
+  track_name: string;
+  artists: string[];
+  uri: string;
+  album_art_url: string;
+}
+
 interface SpinProps {
   onVibeDataChange?: (data: VibeData[] | null) => void;
   onSpinStateChange?: (isSpinning: boolean) => void;
+  onTrackRecommendation?: (track: Track | null) => void;
 }
 
-export default function Spin({ onVibeDataChange, onSpinStateChange }: SpinProps) {
+export default function Spin({ onVibeDataChange, onSpinStateChange, onTrackRecommendation }: SpinProps) {
   const [isSpinning, setIsSpinning] = useState(false);
   const [loading, setLoading] = useState(false);
   const [cameraReady, setCameraReady] = useState(false);
   const liveCamRef = useRef<LiveCamRef>(null);
 
   const fetchVibeData = useCallback(async () => {
+    // Capture snapshot from LiveCam
+    const base64Image = liveCamRef.current?.captureSnapshot();
+    if (!base64Image) {
+      throw new Error('Failed to capture image from camera');
+    }
+
+    const response = await fetch('http://localhost:8000/vibe', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ image_url: base64Image })
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Failed to fetch vibe data: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    console.log('Vibe data:', data);
+    return data;
+  }, []);
+
+  const fetchTrackRecommendation = useCallback(async (vibeData: VibeData[]) => {
+    const response = await fetch('http://localhost:8000/get-track', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ vibe_data: vibeData })
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch track recommendation: ${response.status}`);
+    }
+
+    const trackData = await response.json();
+    console.log('Track recommendation:', trackData);
+    return trackData;
+  }, []);
+
+  const handleSpinStart = useCallback(async () => {
     try {
       setLoading(true);
 
-      // Capture snapshot from LiveCam
-      const base64Image = liveCamRef.current?.captureSnapshot();
-      if (!base64Image) {
-        throw new Error('Failed to capture image from camera');
-      }
+      // Fetch vibe data first
+      const vibeData = await fetchVibeData();
+      onVibeDataChange?.(vibeData);
 
-      const response = await fetch('http://localhost:8000/vibe', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ image_url: base64Image })
-      });
-      
-      if (!response.ok) {
-        throw new Error(`Failed to fetch vibe data: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      console.log('Vibe data:', data);
-      onVibeDataChange?.(data);
-      
-      return data;
+      // Then fetch track recommendation based on vibe data
+      const trackData = await fetchTrackRecommendation(vibeData);
+      onTrackRecommendation?.(trackData);
+
+      setIsSpinning(true);
+      onSpinStateChange?.(true);
     } catch (error) {
-      console.error('Error fetching vibe data:', error);
+      console.error('Error during spin process:', error);
       onVibeDataChange?.(null);
-      throw error;
+      onTrackRecommendation?.(null);
     } finally {
       setLoading(false);
     }
-  }, [onVibeDataChange]);
+  }, [fetchVibeData, fetchTrackRecommendation, onVibeDataChange, onTrackRecommendation, onSpinStateChange]);
 
   const handleClick = useCallback(async () => {
     if (!isSpinning) {
@@ -63,25 +100,19 @@ export default function Spin({ onVibeDataChange, onSpinStateChange }: SpinProps)
         return;
       }
 
-      try {
-        await fetchVibeData();
-        setIsSpinning(true);
-        onSpinStateChange?.(true);
-      } catch (error) {
-        console.error('Failed to start spinning:', error);
-      }
+      await handleSpinStart();
     } else {
       setIsSpinning(false);
       onSpinStateChange?.(false);
     }
-  }, [isSpinning, cameraReady, fetchVibeData, onSpinStateChange]);
+  }, [isSpinning, cameraReady, handleSpinStart, onSpinStateChange]);
 
   return (
     <div className="flex flex-col items-center mt-4">
-      {/* <LiveCam 
+      <LiveCam 
         ref={liveCamRef}
         onCameraReady={setCameraReady}
-      /> */}
+      />
       
       <Button 
         variant="filled" 

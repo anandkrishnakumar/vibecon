@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from routers import spotify, vibe
+from routers import spotify, vibe, db
 
 app = FastAPI(
     title="VibeCon"
@@ -18,6 +18,7 @@ app.add_middleware(
 
 app.include_router(spotify.router, tags=["Spotify"])
 app.include_router(vibe.router, tags=["Vibe"])
+app.include_router(db.router, tags=["Database"])
 
 @app.get("/")
 async def root():

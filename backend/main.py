@@ -4,7 +4,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from routers import spotify, vibe, db, auth
 
 app = FastAPI(
-    title="VibeCon"
+    title="VibeCon",
+    docs_url="/api/docs",
 )
 
 # CORS configuration
@@ -16,14 +17,12 @@ app.add_middleware(
     allow_headers=["*"],  # Allow all headers
 )
 
-app.include_router(auth.router, prefix="/auth", tags=["Authentication"])
+app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
+app.include_router(spotify.router, prefix="/api", tags=["Spotify"])
+app.include_router(vibe.router, prefix="/api", tags=["Vibe"])
+app.include_router(db.router, prefix="/api", tags=["Database"])
 
-app.include_router(spotify.router, tags=["Spotify"])
-app.include_router(vibe.router, tags=["Vibe"])
-app.include_router(db.router, tags=["Database"])
-
-
-@app.get("/")
+@app.get("/api/")
 async def root():
     """
     Root endpoint.

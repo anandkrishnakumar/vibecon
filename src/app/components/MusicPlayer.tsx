@@ -19,6 +19,11 @@ export default function MusicPlayer({ track }: MusicPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
+  let baseUrl = "https://vibecon.vercel.app";
+    if (process.env.NODE_ENV === 'development') {
+        baseUrl = "http://localhost:3000";
+    }
+
   const handlePlayPause = async () => {
     if (!track) return;
     
@@ -27,7 +32,7 @@ export default function MusicPlayer({ track }: MusicPlayerProps) {
     try {
       if (isPlaying) {
         // Call pause endpoint
-        const response = await fetch(`http://localhost:8000/pause`, {
+        const response = await fetch(`${baseUrl}/api/pause`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -41,7 +46,7 @@ export default function MusicPlayer({ track }: MusicPlayerProps) {
         }
       } else {
         // Call play endpoint with track URI
-        const response = await fetch(`http://localhost:8000/play`, {
+        const response = await fetch(`${baseUrl}/api/play`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

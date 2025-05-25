@@ -27,6 +27,11 @@ export default function Spin({ onVibeDataChange, onTrackRecommendation }: SpinPr
   const [cameraReady, setCameraReady] = useState(false);
   const liveCamRef = useRef<LiveCamRef>(null);
 
+  let baseUrl = "https://vibecon.vercel.app";
+    if (process.env.NODE_ENV === 'development') {
+        baseUrl = "http://localhost:3000";
+    }
+
   const fetchVibeData = useCallback(async () => {
     // Capture snapshot from LiveCam
     const base64Image = liveCamRef.current?.captureSnapshot();
@@ -34,7 +39,7 @@ export default function Spin({ onVibeDataChange, onTrackRecommendation }: SpinPr
       throw new Error('Failed to capture image from camera');
     }
 
-    const response = await fetch('http://localhost:8000/vibe', {
+    const response = await fetch(`${baseUrl}/api/vibe`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -52,7 +57,7 @@ export default function Spin({ onVibeDataChange, onTrackRecommendation }: SpinPr
   }, []);
 
   const fetchTrackRecommendation = useCallback(async (vibeData: VibeData[]) => {
-    const response = await fetch('http://localhost:8000/get-track', {
+    const response = await fetch(`${baseUrl}/api/get-track`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

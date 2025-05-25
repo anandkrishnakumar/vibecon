@@ -35,8 +35,13 @@ export default function LoginPage() {
     setLoading(true);
     setError('');
 
+    let baseUrl = "https://vibecon.vercel.app";
+    if (process.env.NODE_ENV === 'development') {
+        baseUrl = "http://localhost:3000";
+    }
+
     try {
-      const response = await fetch('http://localhost:8000/auth/login', {
+      const response = await fetch(`${baseUrl}/api/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -31,6 +31,7 @@ async def play_track(request: PlayRequest):
         "track_uri": uri
     }
 
+
 @router.post("/pause")
 async def pause_track():
     """

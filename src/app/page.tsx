@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 
+import { useState } from "react";
 import { createTheme, MantineProvider } from "@mantine/core";
 import { Group } from "@mantine/core";
 
@@ -31,6 +32,8 @@ const theme = createTheme({
 });
 
 export default function Home() {
+  const [vibeData, setVibeData] = useState(null);
+
   return (
     <MantineProvider theme={theme}>
       <div className="min-h-screen bg-black text-white">
@@ -43,9 +46,9 @@ export default function Home() {
           priority
         />
         {/* <LiveCam /> */}
-        <Spin />
+        <Spin onVibeDataChange={setVibeData}/>
         <Group grow h={300}>
-          <VibeViz />
+          <VibeViz data={vibeData}/>
           <MusicPlayer />
         </Group>
       </div>

@@ -1,11 +1,32 @@
 import { BarChart } from '@mantine/charts';
-import { data } from '../../../data/data';
 
-export default function Demo() {
+// Mock data - will be replaced with API call later
+const mockData = [
+  { aspect: 'danceability', value: 0.5 },
+  { aspect: 'energy', value: 0.7 },
+  { aspect: 'speechiness', value: 0.1 },
+  { aspect: 'acousticness', value: 0.3 },
+  { aspect: 'instrumentalness', value: 0.2 },
+  { aspect: 'valence', value: 0.6 },
+];
+
+interface VibeData {
+  aspect: string;
+  value: number;
+}
+
+interface VibeVizProps {
+  data?: VibeData[] | null;
+}
+
+export default function VibeViz({ data }: VibeVizProps) {
+  // Use API data if available, otherwise fall back to mock data
+  const chartData = data || mockData;
+
   return (
     <BarChart
       h={300}
-      data={data}
+      data={chartData}
       dataKey="aspect"
       type="stacked"
       orientation="vertical"

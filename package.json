@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "concurrently \"next dev --turbopack\" \"cd backend && poetry run python -m uvicorn main:app --reload --port 8000\"",
+    "dev": "concurrently \"next dev --turbopack\" \"cd api && poetry run python -m uvicorn main:app --reload --port 8000\"",
     "dev:frontend": "next dev --turbopack",
     "dev:backend": "python -m uvicorn backend.main:app --reload --port 8000",
     "build": "next build",

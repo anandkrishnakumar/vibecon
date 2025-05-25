@@ -18,7 +18,8 @@ router = APIRouter()
 
 # Load songs dataset
 # https://www.kaggle.com/datasets/maharshipandya/-spotify-tracks-dataset
-DATASET_PATH = "/Users/anandkrishnakumar/Coding/VibeConnoisseur/data/dataset.csv"
+DATASET_REL_PATH = "../../data/dataset.csv"
+DATASET_PATH = os.path.join(os.path.dirname(__file__), DATASET_REL_PATH)
 df = pd.read_csv(DATASET_PATH)
 
 # Filter to decently popular songs

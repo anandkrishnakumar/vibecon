@@ -27,7 +27,7 @@ export default function Spin({ onVibeDataChange, onTrackRecommendation }: SpinPr
   const [cameraReady, setCameraReady] = useState(false);
   const liveCamRef = useRef<LiveCamRef>(null);
 
-  let baseUrl = "https://vibecon.vercel.app";
+  let baseUrl = "https://vibecon.onrender.com";
     if (process.env.NODE_ENV === 'development') {
         baseUrl = "http://localhost:3000";
     }

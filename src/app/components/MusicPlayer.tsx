@@ -19,7 +19,7 @@ export default function MusicPlayer({ track }: MusicPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  let baseUrl = "https://vibecon.vercel.app";
+  let baseUrl = "https://vibecon.onrender.com";
     if (process.env.NODE_ENV === 'development') {
         baseUrl = "http://localhost:3000";
     }

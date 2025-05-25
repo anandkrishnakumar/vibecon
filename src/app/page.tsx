@@ -134,7 +134,7 @@ export default function LoginPage() {
             </Button>
             
             <Text size="sm" c="dimmed">
-              You'll need a Spotify Premium account to control playback
+                You&apos;ll need a Spotify Premium account to control playback
             </Text>
           </Stack>
         </Container>

@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
-import { Button, Container, Text, Stack, TextInput, PasswordInput, createTheme } from "@mantine/core";
+import { useState, useEffect } from 'react';
+import { Button, Container, Text, Stack, createTheme } from "@mantine/core";
 import { MantineProvider } from "@mantine/core";
+import { IconBrandSpotify } from "@tabler/icons-react";
 import Image from "next/image";
 
 const theme = createTheme({
@@ -25,44 +26,78 @@ const theme = createTheme({
 });
 
 export default function LoginPage() {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
+  // Get base URL for API calls
+  let baseUrl = "https://vibecon.onrender.com";
+  if (process.env.NODE_ENV === 'development') {
+    baseUrl = "http://localhost:8000";
+  }
 
-    let baseUrl = "https://vibecon.onrender.com";
-    if (process.env.NODE_ENV === 'development') {
-        baseUrl = "http://localhost:3000";
+  // Check for existing token or auth callback on page load
+  useEffect(() => {
+    // First check if we already have a token
+    const existingToken = localStorage.getItem('spotify_access_token');
+    console.log('Existing token:', existingToken);
+    if (existingToken) {
+      // Already authenticated, redirect to home
+      window.location.href = '/home';
+      return;
     }
 
+    // No token, check for auth callback
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get('code');
+    const authError = urlParams.get('error');
+
+    if (code) {
+      // We have a code but no token, exchange it for a token
+      exchangeCodeForToken(code);
+    } else if (authError) {
+      setError('Spotify authentication failed. Please try again.');
+    }
+  }, []);
+
+  const exchangeCodeForToken = async (code: string) => {
+    setLoading(true);
     try {
-      const response = await fetch(`${baseUrl}/api/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ username, password }),
+      const response = await fetch(`${baseUrl}/api/auth/spotify/get-token?code=${code}`, {
+        method: 'GET',
       });
 
       if (response.ok) {
         const data = await response.json();
-        // Store token in localStorage or cookies
-        localStorage.setItem('token', data.token);
-        // Redirect to dashboard
+        // Store access token
+        localStorage.setItem('spotify_access_token', data.access_token);
+        console.log('Access token received:', data.access_token);
+        if (data.refresh_token) {
+          localStorage.setItem('spotify_refresh_token', data.refresh_token);
+        }
+        // Redirect to home
         window.location.href = '/home';
       } else {
-        setError('Invalid username or password');
+        setError('Failed to get access token');
       }
-    } catch (error) {
-        console.error('Login error:', error);
-        setError('Login failed. Please try again.');
+    } catch (err) {
+      console.error('Token exchange error:', err);
+      setError('Failed to authenticate with Spotify');
     } finally {
-        setLoading(false);
+      setLoading(false);
+    }
+  };
+
+  const handleSpotifyLogin = async () => {
+    setLoading(true);
+    setError('');
+
+    try {
+      // Redirect to your backend's Spotify auth endpoint
+      window.location.href = `${baseUrl}/api/auth/spotify/login`;
+    } catch (err) {
+      console.error('Spotify login error:', err);
+      setError('Failed to connect to Spotify. Please try again.');
+      setLoading(false);
     }
   };
 
@@ -71,42 +106,36 @@ export default function LoginPage() {
       <div className="min-h-screen bg-black text-white flex items-center justify-center">
         <Container size="sm" className="text-center">
           <Stack gap="xl" align="center">
-            <Image src="/vibecon.svg" alt="VibeCon" width={300} height={300} />
+            <Image src="/vibecon.svg" alt="VibeCon" width={400} height={400} />
             
-            <Text size="xl" c="dimmed">
+            <Text size="xl" c="dimmed" maw={600}>
               Discover music that matches your vibe
             </Text>
             
-            <form onSubmit={handleLogin} className="w-full max-w-sm">
-              <Stack gap="md">
-                <TextInput
-                  label="Username"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  required
-                />
-                <PasswordInput
-                  label="Password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
-                
-                {error && (
-                  <Text c="red" size="sm">{error}</Text>
-                )}
-                
-                <Button
-                  type="submit"
-                  size="lg"
-                  loading={loading}
-                  color="blue"
-                  fullWidth
-                >
-                  Sign In
-                </Button>
-              </Stack>
-            </form>
+            {error && (
+              <Text c="red" size="sm">{error}</Text>
+            )}
+            
+            {loading && (
+              <Text c="blue" size="sm">Connecting to Spotify...</Text>
+            )}
+            
+            <Button
+              size="lg"
+              leftSection={<IconBrandSpotify size={24} />}
+              onClick={handleSpotifyLogin}
+              loading={loading}
+              color="green"
+              variant="filled"
+              radius="xl"
+              className="px-8 py-4"
+            >
+              Connect with Spotify
+            </Button>
+            
+            <Text size="sm" c="dimmed">
+              You'll need a Spotify Premium account to control playback
+            </Text>
           </Stack>
         </Container>
       </div>

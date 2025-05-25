@@ -24,6 +24,24 @@ export default function MusicPlayer({ track }: MusicPlayerProps) {
         baseUrl = "http://localhost:3000";
     }
 
+  // Create a utility function for authenticated requests
+  const makeAuthenticatedRequest = async (url: string, options: RequestInit = {}) => {
+    const token = localStorage.getItem('spotify_access_token');
+    
+    if (!token) {
+      throw new Error('No access token available');
+    }
+
+    return fetch(url, {
+      ...options,
+      headers: {
+        ...options.headers,
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+  };
+
   const handlePlayPause = async () => {
     if (!track) return;
     
@@ -32,7 +50,7 @@ export default function MusicPlayer({ track }: MusicPlayerProps) {
     try {
       if (isPlaying) {
         // Call pause endpoint
-        const response = await fetch(`${baseUrl}/api/pause`, {
+        const response = await makeAuthenticatedRequest(`${baseUrl}/api/pause`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -46,7 +64,7 @@ export default function MusicPlayer({ track }: MusicPlayerProps) {
         }
       } else {
         // Call play endpoint with track URI
-        const response = await fetch(`${baseUrl}/api/play`, {
+        const response = await makeAuthenticatedRequest(`${baseUrl}/api/play`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

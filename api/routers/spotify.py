@@ -4,10 +4,11 @@ import json
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials, SpotifyOAuth
 from dotenv import load_dotenv
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 
 # from backend.utils import mock, load_mocks_json
+from routers.auth.spotify_auth import get_user_access_token
 
 load_dotenv()
 router = APIRouter()
@@ -18,11 +19,11 @@ class PlayRequest(BaseModel):
 
 
 @router.post("/play")
-async def play_track(request: PlayRequest):
+async def play_track(request: PlayRequest, access_token: str = Depends(get_user_access_token)):
     """
     Play a track on Spotify.
     """
-    sp = setup_spotify_client()
+    sp = setup_spotify_client(token=access_token)
     uri = request.track_uri
     sp.start_playback(uris=[uri])
 
@@ -33,11 +34,11 @@ async def play_track(request: PlayRequest):
 
 
 @router.post("/pause")
-async def pause_track():
+async def pause_track(access_token: str = Depends(get_user_access_token)):
     """
     Pause the currently playing track on Spotify.
     """
-    sp = setup_spotify_client()
+    sp = setup_spotify_client(token=access_token)
     sp.pause_playback()
 
     return {
@@ -45,11 +46,14 @@ async def pause_track():
     }
 
 
-def setup_spotify_client() -> spotipy.Spotify:
-    # auth_manager = SpotifyClientCredentials()
-    auth_manager = SpotifyOAuth(
-        scope="user-read-playback-state,user-modify-playback-state")
-    sp = spotipy.Spotify(auth_manager=auth_manager)
+def setup_spotify_client(token=None) -> spotipy.Spotify:
+    if token:
+        sp = spotipy.Spotify(token)
+    else:
+        # auth_manager = SpotifyClientCredentials()
+        auth_manager = SpotifyOAuth(
+            scope="user-read-playback-state,user-modify-playback-state")
+        sp = spotipy.Spotify(auth_manager=auth_manager)
     return sp
 
 

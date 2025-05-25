@@ -48,7 +48,7 @@ export default function Home() {
 
   useEffect(() => {
     // Check if user is authenticated
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('spotify_access_token');
     if (!token) {
       // Redirect to login if not authenticated
       window.location.href = '/';

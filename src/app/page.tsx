@@ -1,29 +1,11 @@
 'use client';
 
+import { useState } from 'react';
+import { Button, Container, Text, Stack, TextInput, PasswordInput, createTheme } from "@mantine/core";
+import { MantineProvider } from "@mantine/core";
 import Image from "next/image";
-import { useState } from "react";
-import { createTheme, MantineProvider } from "@mantine/core";
-import { Group } from "@mantine/core";
-
-import Spin from "./components/Spin";
-import VibeViz from "./components/VibeViz";
-import MusicPlayer from "./components/MusicPlayer";
-
-// Define interfaces at the top
-interface VibeData {
-  aspect: string;
-  value: number;
-}
-
-interface Track {
-  track_name: string;
-  artists: string[];
-  uri: string;
-  album_art_url: string;
-}
 
 const theme = createTheme({
-  colorScheme: 'dark',
   colors: {
     dark: [
       '#C1C2C5',
@@ -42,43 +24,86 @@ const theme = createTheme({
   defaultRadius: 'md',
 });
 
-export default function Home() {
-  const [vibeData, setVibeData] = useState<VibeData[] | null>(null);
-  const [currentTrack, setCurrentTrack] = useState<Track | null>(null);
+export default function LoginPage() {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleVibeDataChange = (data: VibeData[] | null) => {
-    setVibeData(data);
-  };
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
 
-  const handleTrackRecommendation = (track: Track | null) => {
-    setCurrentTrack(track);
-    if (track) {
-      console.log('Recommended track:', track);
-    } else {
-      console.log('No track recommendation available');
+    try {
+      const response = await fetch('http://localhost:8000/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, password }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        // Store token in localStorage or cookies
+        localStorage.setItem('token', data.token);
+        // Redirect to dashboard
+        window.location.href = '/home';
+      } else {
+        setError('Invalid username or password');
+      }
+    } catch (error) {
+        console.error('Login error:', error);
+        setError('Login failed. Please try again.');
+    } finally {
+        setLoading(false);
     }
   };
 
   return (
     <MantineProvider theme={theme}>
-      <div className="min-h-screen bg-black text-white">
-        <Image
-          src="/vibecon.svg"
-          alt="VibeCon Logo"
-          width={500}
-          height={500}
-          className="mx-auto pt-10"
-          priority
-        />
-        {/* <LiveCam /> */}
-        <Spin 
-          onVibeDataChange={handleVibeDataChange}
-          onTrackRecommendation={handleTrackRecommendation}
-        />
-        <Group grow h={300}>
-          <VibeViz data={vibeData}/>
-          <MusicPlayer track={currentTrack} />
-        </Group>
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <Container size="sm" className="text-center">
+          <Stack gap="xl" align="center">
+            <Image src="/vibecon.svg" alt="VibeCon" width={300} height={300} />
+            
+            <Text size="xl" c="dimmed">
+              Discover music that matches your vibe
+            </Text>
+            
+            <form onSubmit={handleLogin} className="w-full max-w-sm">
+              <Stack gap="md">
+                <TextInput
+                  label="Username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  required
+                />
+                <PasswordInput
+                  label="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+                
+                {error && (
+                  <Text c="red" size="sm">{error}</Text>
+                )}
+                
+                <Button
+                  type="submit"
+                  size="lg"
+                  loading={loading}
+                  color="blue"
+                  fullWidth
+                >
+                  Sign In
+                </Button>
+              </Stack>
+            </form>
+          </Stack>
+        </Container>
       </div>
     </MantineProvider>
   );

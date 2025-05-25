@@ -5,7 +5,6 @@ import { useState } from "react";
 import { createTheme, MantineProvider } from "@mantine/core";
 import { Group } from "@mantine/core";
 
-import LiveCam from "./components/LiveCam";
 import Spin from "./components/Spin";
 import VibeViz from "./components/VibeViz";
 import MusicPlayer from "./components/MusicPlayer";
@@ -45,15 +44,10 @@ const theme = createTheme({
 
 export default function Home() {
   const [vibeData, setVibeData] = useState<VibeData[] | null>(null);
-  const [isSpinning, setIsSpinning] = useState(false);
   const [currentTrack, setCurrentTrack] = useState<Track | null>(null);
 
   const handleVibeDataChange = (data: VibeData[] | null) => {
     setVibeData(data);
-  };
-
-  const handleSpinStateChange = (spinning: boolean) => {
-    setIsSpinning(spinning);
   };
 
   const handleTrackRecommendation = (track: Track | null) => {
@@ -79,7 +73,6 @@ export default function Home() {
         {/* <LiveCam /> */}
         <Spin 
           onVibeDataChange={handleVibeDataChange}
-          onSpinStateChange={handleSpinStateChange}
           onTrackRecommendation={handleTrackRecommendation}
         />
         <Group grow h={300}>

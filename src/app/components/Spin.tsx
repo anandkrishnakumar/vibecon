@@ -18,11 +18,10 @@ interface Track {
 
 interface SpinProps {
   onVibeDataChange?: (data: VibeData[] | null) => void;
-  onSpinStateChange?: (isSpinning: boolean) => void;
   onTrackRecommendation?: (track: Track | null) => void;
 }
 
-export default function Spin({ onVibeDataChange, onSpinStateChange, onTrackRecommendation }: SpinProps) {
+export default function Spin({ onVibeDataChange, onTrackRecommendation }: SpinProps) {
   const [isSpinning, setIsSpinning] = useState(false);
   const [loading, setLoading] = useState(false);
   const [cameraReady, setCameraReady] = useState(false);
@@ -83,7 +82,6 @@ export default function Spin({ onVibeDataChange, onSpinStateChange, onTrackRecom
       onTrackRecommendation?.(trackData);
 
       setIsSpinning(true);
-      onSpinStateChange?.(true);
     } catch (error) {
       console.error('Error during spin process:', error);
       onVibeDataChange?.(null);
@@ -91,7 +89,7 @@ export default function Spin({ onVibeDataChange, onSpinStateChange, onTrackRecom
     } finally {
       setLoading(false);
     }
-  }, [fetchVibeData, fetchTrackRecommendation, onVibeDataChange, onTrackRecommendation, onSpinStateChange]);
+  }, [fetchVibeData, fetchTrackRecommendation, onVibeDataChange, onTrackRecommendation]);
 
   const handleClick = useCallback(async () => {
     if (!isSpinning) {
@@ -103,9 +101,8 @@ export default function Spin({ onVibeDataChange, onSpinStateChange, onTrackRecom
       await handleSpinStart();
     } else {
       setIsSpinning(false);
-      onSpinStateChange?.(false);
     }
-  }, [isSpinning, cameraReady, handleSpinStart, onSpinStateChange]);
+  }, [isSpinning, cameraReady, handleSpinStart]);
 
   return (
     <div className="flex flex-col items-center mt-4">

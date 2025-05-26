@@ -4,7 +4,7 @@ import json
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials, SpotifyOAuth
 from dotenv import load_dotenv
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
 # from backend.utils import mock, load_mocks_json
@@ -17,6 +17,11 @@ router = APIRouter()
 class PlayRequest(BaseModel):
     track_uri: str
 
+# TODO: Handle expired tokens and refresh them
+# TODO: When play is called, if same track is already playing, just resume
+# TODO: Move track exclusion to client side, so that it doesm't affect the server's state
+# TODO: Enhance player to allow seeking & skipping tracks
+
 
 @router.post("/play")
 async def play_track(request: PlayRequest, access_token: str = Depends(get_user_access_token)):
@@ -25,7 +30,15 @@ async def play_track(request: PlayRequest, access_token: str = Depends(get_user_
     """
     sp = setup_spotify_client(token=access_token)
     uri = request.track_uri
-    sp.start_playback(uris=[uri])
+
+    device_id = get_active_device_id(token=access_token)
+    if not device_id:
+        raise HTTPException(
+            status_code=400,
+            detail="No active device found. Please start playing Spotify on any device to activate it."
+        )
+
+    sp.start_playback(uris=[uri], device_id=device_id)
 
     return {
         "message": "Track is now playing",
@@ -39,7 +52,9 @@ async def pause_track(access_token: str = Depends(get_user_access_token)):
     Pause the currently playing track on Spotify.
     """
     sp = setup_spotify_client(token=access_token)
-    sp.pause_playback()
+
+    device_id = get_active_device_id(token=access_token)
+    sp.pause_playback(device_id=device_id)
 
     return {
         "message": "Playback paused"
@@ -56,6 +71,16 @@ def setup_spotify_client(token=None) -> spotipy.Spotify:
         sp = spotipy.Spotify(auth_manager=auth_manager)
     return sp
 
+def get_active_device_id(token=None) -> str:
+    """
+    Get the active device ID from Spotify.
+    """
+    sp = setup_spotify_client(token)
+    devices = sp.devices()
+    for device in devices['devices']:
+        if device['is_active']:
+            return device['id']
+    return None
 
 def search_spotify_track(track_name: str, return_first_result=True) -> Dict:
     """

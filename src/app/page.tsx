@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Button, Container, Text, Stack, createTheme } from "@mantine/core";
 import { MantineProvider } from "@mantine/core";
+import { Notifications } from "@mantine/notifications";
 import { IconBrandSpotify } from "@tabler/icons-react";
 import Image from "next/image";
 
@@ -103,6 +104,7 @@ export default function LoginPage() {
 
   return (
     <MantineProvider theme={theme}>
+      <Notifications />
       <div className="min-h-screen bg-black text-white flex items-center justify-center">
         <Container size="sm" className="text-center">
           <Stack gap="xl" align="center">

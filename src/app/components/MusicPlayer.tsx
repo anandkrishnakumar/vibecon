@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Image, Box, ActionIcon, Text } from '@mantine/core';
 import { IconPlayerPlay, IconPlayerPause } from '@tabler/icons-react';
+import { notifications } from '@mantine/notifications';
 
 interface Track {
   track_name: string;
@@ -20,14 +21,14 @@ export default function MusicPlayer({ track }: MusicPlayerProps) {
   const [isLoading, setIsLoading] = useState(false);
 
   let baseUrl = "https://vibecon.onrender.com";
-    if (process.env.NODE_ENV === 'development') {
-        baseUrl = "http://localhost:3000";
-    }
+  if (process.env.NODE_ENV === 'development') {
+    baseUrl = "http://localhost:3000";
+  }
 
   // Create a utility function for authenticated requests
   const makeAuthenticatedRequest = async (url: string, options: RequestInit = {}) => {
     const token = localStorage.getItem('spotify_access_token');
-    
+
     if (!token) {
       throw new Error('No access token available');
     }
@@ -44,9 +45,9 @@ export default function MusicPlayer({ track }: MusicPlayerProps) {
 
   const handlePlayPause = async () => {
     if (!track) return;
-    
+
     setIsLoading(true);
-    
+
     try {
       if (isPlaying) {
         // Call pause endpoint
@@ -56,7 +57,7 @@ export default function MusicPlayer({ track }: MusicPlayerProps) {
             'Content-Type': 'application/json',
           },
         });
-        
+
         if (response.ok) {
           setIsPlaying(false);
         } else {
@@ -71,11 +72,30 @@ export default function MusicPlayer({ track }: MusicPlayerProps) {
           },
           body: JSON.stringify({ track_uri: track.uri })
         });
-        
+
         if (response.ok) {
           setIsPlaying(true);
         } else {
-          console.error('Failed to start playback');
+          const errorData = await response.json();
+          if (response.status === 400) {
+            console.log('Showing error notification for 400 response');
+            notifications.show({
+              title: 'Playback Error',
+              message: errorData.detail,
+              color: 'red',
+              radius: 'lg',
+              withCloseButton: true,
+            })
+          } else {
+            notifications.show({
+              title: 'Playback Error',
+              message: errorData.detail || 'Failed to play track',
+              color: 'red',
+              radius: 'lg',
+            });
+          }
+          // console.error('Failed to start playback');
+          // console.error('Response status:', response.status);
         }
       }
     } catch (error) {
@@ -95,14 +115,14 @@ export default function MusicPlayer({ track }: MusicPlayerProps) {
   const displayTrack = track || defaultTrack;
 
   return (
-    <Box 
-        pos="relative" 
-        w="100%" 
-        style={{ aspectRatio: '1/1' }}
-        maw="400px"
-        mx="auto"
+    <Box
+      pos="relative"
+      w="100%"
+      style={{ aspectRatio: '1/1' }}
+      maw="400px"
+      mx="auto"
     >
-        
+
       {/* Main album art */}
       <Image
         radius="md"
@@ -110,7 +130,7 @@ export default function MusicPlayer({ track }: MusicPlayerProps) {
         h="100%"
         fit="cover"
       />
-      
+
       {/* Track info overlay */}
       <Box
         pos="absolute"
@@ -130,7 +150,7 @@ export default function MusicPlayer({ track }: MusicPlayerProps) {
           {displayTrack.artists.join(', ')}
         </Text>
       </Box>
-      
+
       {/* Play button overlay */}
       <ActionIcon
         size={60}
@@ -151,7 +171,7 @@ export default function MusicPlayer({ track }: MusicPlayerProps) {
           <IconPlayerPlay size={30} color="white" />
         )}
       </ActionIcon>
-      
+
       {/* Up next image - keeping as placeholder for now */}
       <Box
         pos="absolute"

@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import { createTheme, MantineProvider } from "@mantine/core";
 import { Group } from "@mantine/core";
+import { Notifications } from "@mantine/notifications";
 
 import Spin from "../components/Spin";
 import VibeViz from "../components/VibeViz";
@@ -89,6 +90,7 @@ export default function Home() {
   else {
     return (
       <MantineProvider theme={theme}>
+        <Notifications />
         <div className="min-h-screen bg-black text-white">
           <Image
             src="/vibecon.svg"

@@ -47,11 +47,38 @@ def spotify_callback(request: Request):
     else:
         raise HTTPException(status_code=400, detail="Failed to exchange code for token")
     
-async def get_user_access_token(authorization: str = Header(None)):
+async def get_user_tokens(
+    authorization: str = Header(None),
+    x_refresh_token: str = Header(None, alias="X-Refresh-Token")
+):
     """
-    Extracts the access token from the Authorization header.
+    Extract both access and refresh tokens from headers.
     """
     if not authorization or not authorization.startswith("Bearer "):
-        raise HTTPException(status_code=401, detail="Authorization header missing or invalid")
+        raise HTTPException(status_code=401, detail="No valid authorization header")
     
-    return authorization.replace("Bearer ", "", 1)
+    access_token = authorization.replace("Bearer ", "")
+    return {
+        "access_token": access_token,
+        "refresh_token": x_refresh_token
+    }
+
+async def refresh_access_token(refresh_token: str):
+    """
+    Refresh Spotify access token.
+    """
+    token_url = "https://accounts.spotify.com/api/token"
+    
+    data = {
+        "grant_type": "refresh_token",
+        "refresh_token": refresh_token,
+        "client_id": SPOTIFY_CLIENT_ID,
+        "client_secret": SPOTIFY_CLIENT_SECRET
+    }
+    
+    response = requests.post(token_url, data=data)
+    
+    if response.status_code == 200:
+        return response.json()
+    else:
+        raise Exception(f"Failed to refresh token: {response.status_code}")

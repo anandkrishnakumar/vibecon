@@ -42,6 +42,7 @@ export default function VibeViz({ data }: VibeVizProps) {
       withXAxis={true}
       withYAxis={true}
       withTooltip={false}
+      // barProps={{maxBarSize:18 }}
     />
   );
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useRef } from 'react';
-import { Button } from '@mantine/core';
+import { Box, Button } from '@mantine/core';
 import LiveCam, { LiveCamRef } from './LiveCam';
 
 interface VibeData {
@@ -110,7 +110,7 @@ export default function Spin({ onVibeDataChange, onTrackRecommendation }: SpinPr
   }, [isSpinning, cameraReady, handleSpinStart]);
 
   return (
-    <div className="flex flex-col items-center mt-4">
+    <Box className="flex flex-col items-center justify-center h-full p-4">
       <LiveCam 
         ref={liveCamRef}
         onCameraReady={setCameraReady}
@@ -133,6 +133,6 @@ export default function Spin({ onVibeDataChange, onTrackRecommendation }: SpinPr
           Waiting for camera to be ready...
         </p>
       )}
-    </div>
+    </Box>
   );
 }

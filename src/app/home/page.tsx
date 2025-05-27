@@ -95,9 +95,9 @@ export default function Home() {
           <Image
             src="/vibecon.svg"
             alt="VibeCon Logo"
-            width={500}
-            height={500}
-            className="mx-auto pt-10"
+            width={400}
+            height={400}
+            className="mx-auto pt-5"
             priority
           />
           <Spin

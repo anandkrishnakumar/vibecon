@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
+import React, { useEffect, useRef, useImperativeHandle, forwardRef, useState } from 'react';
 
 interface LiveCamRef {
   captureSnapshot: () => string | null;
+  switchCamera: () => Promise<void>;
 }
 
 interface LiveCamProps {
@@ -13,6 +14,51 @@ interface LiveCamProps {
 const LiveCam = forwardRef<LiveCamRef, LiveCamProps>(({ onCameraReady }, ref) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [currentFacingMode, setCurrentFacingMode] = useState<'user' | 'environment'>('user');
+  const [availableCameras, setAvailableCameras] = useState<MediaDeviceInfo[]>([]);
+
+  const setupCamera = async (facingMode: 'user' | 'environment' = currentFacingMode) => {
+    try {
+      // Stop existing stream
+      if (videoRef.current?.srcObject) {
+        const tracks = (videoRef.current.srcObject as MediaStream).getTracks();
+        tracks.forEach(track => track.stop());
+      }
+
+      const constraints = {
+        video: {
+          facingMode: { ideal: facingMode }
+        }
+      };
+
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        videoRef.current.onloadedmetadata = () => {
+          onCameraReady?.(true);
+        };
+      }
+      setCurrentFacingMode(facingMode);
+    } catch (err) {
+      console.error('Error accessing webcam:', err);
+      onCameraReady?.(false);
+    }
+  };
+
+  const getAvailableCameras = async () => {
+    try {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const videoDevices = devices.filter(device => device.kind === 'videoinput');
+      setAvailableCameras(videoDevices);
+    } catch (err) {
+      console.error('Error enumerating devices:', err);
+    }
+  };
+
+  const switchCamera = async () => {
+    const newFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
+    await setupCamera(newFacingMode);
+  };
 
   useImperativeHandle(ref, () => ({
     captureSnapshot: () => {
@@ -33,25 +79,12 @@ const LiveCam = forwardRef<LiveCamRef, LiveCamProps>(({ onCameraReady }, ref) =>
 
       // Convert to base64
       return canvas.toDataURL('image/jpeg', 0.8);
-    }
+    },
+    switchCamera
   }));
 
   useEffect(() => {
-    const setupCamera = async () => {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          videoRef.current.onloadedmetadata = () => {
-            onCameraReady?.(true);
-          };
-        }
-      } catch (err) {
-        console.error('Error accessing webcam:', err);
-        onCameraReady?.(false);
-      }
-    };
-
+    getAvailableCameras();
     setupCamera();
 
     return () => {
@@ -62,18 +95,43 @@ const LiveCam = forwardRef<LiveCamRef, LiveCamProps>(({ onCameraReady }, ref) =>
     };
   }, [onCameraReady]);
 
+  const hasMutipleCameras = availableCameras.length > 1;
+
   return (
-    <>
+    <div className="relative">
       <video
         ref={videoRef}
         autoPlay
         muted
         playsInline
-        className="w-1/5 h-1/2 object-cover rounded-2xl shadow-lg mx-auto block"
+        className="w-2/5 h-1/2 object-cover rounded-2xl shadow-lg mx-auto block"
       />
+      
+      {/* Camera switch button - only show if multiple cameras available */}
+      {hasMutipleCameras && (
+        <button
+          onClick={switchCamera}
+          className="absolute top-2 right-2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-70 transition-all"
+          title="Switch Camera"
+        >
+          <svg 
+            width="20" 
+            height="20" 
+            viewBox="0 0 24 24" 
+            fill="none" 
+            stroke="currentColor" 
+            strokeWidth="2"
+          >
+            <path d="M9 12l2 2 4-4"/>
+            <path d="M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9c2.12 0 4.07.74 5.63 1.97"/>
+            <path d="M17 3l4 4-4 4"/>
+          </svg>
+        </button>
+      )}
+      
       {/* Hidden canvas for capturing snapshots */}
       <canvas ref={canvasRef} style={{ display: 'none' }} />
-    </>
+    </div>
   );
 });
 

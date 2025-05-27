@@ -28,6 +28,7 @@ export default function MusicPlayer({ track }: MusicPlayerProps) {
   // Create a utility function for authenticated requests
   const makeAuthenticatedRequest = async (url: string, options: RequestInit = {}) => {
     const token = localStorage.getItem('spotify_access_token');
+    const refreshToken = localStorage.getItem('spotify_refresh_token');
 
     if (!token) {
       throw new Error('No access token available');
@@ -38,10 +39,19 @@ export default function MusicPlayer({ track }: MusicPlayerProps) {
       headers: {
         ...options.headers,
         'Authorization': `Bearer ${token}`,
+        'X-Refresh-Token': refreshToken || '',
         'Content-Type': 'application/json',
       },
     });
   };
+
+  // If response contains a new token, update localStorage
+  const handleTokenUpdate = (data: any) => {
+    if (data.spotify_access_token) {
+      localStorage.setItem('spotify_access_token', data.spotify_access_token);
+      localStorage.setItem('spotify_refresh_token', data.spotify_refresh_token);
+    }
+  }
 
   const handlePlayPause = async () => {
     if (!track) return;
@@ -60,6 +70,8 @@ export default function MusicPlayer({ track }: MusicPlayerProps) {
 
         if (response.ok) {
           setIsPlaying(false);
+          const data = await response.json();
+          handleTokenUpdate(data);
         } else {
           console.error('Failed to pause playback');
         }
@@ -75,6 +87,8 @@ export default function MusicPlayer({ track }: MusicPlayerProps) {
 
         if (response.ok) {
           setIsPlaying(true);
+          const data = await response.json();
+          handleTokenUpdate(data);
         } else {
           const errorData = await response.json();
           if (response.status === 400) {
@@ -119,7 +133,7 @@ export default function MusicPlayer({ track }: MusicPlayerProps) {
       pos="relative"
       w="100%"
       style={{ aspectRatio: '1/1' }}
-      maw="400px"
+      maw="350px"
       mx="auto"
     >
 

@@ -106,9 +106,9 @@ def setup_spotify_client(token=None) -> spotipy.Spotify:
     if token:
         sp = spotipy.Spotify(token)
     else:
-        # auth_manager = SpotifyClientCredentials()
-        auth_manager = SpotifyOAuth(
-            scope="user-read-playback-state,user-modify-playback-state")
+        auth_manager = SpotifyClientCredentials()
+        # auth_manager = SpotifyOAuth(
+        #     scope="user-read-playback-state,user-modify-playback-state")
         sp = spotipy.Spotify(auth_manager=auth_manager)
     return sp
 

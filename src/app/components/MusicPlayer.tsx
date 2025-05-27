@@ -123,8 +123,8 @@ export default function MusicPlayer({ track }: MusicPlayerProps) {
 
   // Default track info when no track is provided
   const defaultTrack = {
-    track_name: "No track selected",
-    artists: ["Select a track to play"],
+    track_name: "No track",
+    artists: [""],
     album_art_url: "https://via.placeholder.com/400x400?text=No+Track"
   };
 

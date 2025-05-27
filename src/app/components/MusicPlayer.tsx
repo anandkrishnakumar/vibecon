@@ -124,8 +124,8 @@ export default function MusicPlayer({ track }: MusicPlayerProps) {
   // Default track info when no track is provided
   const defaultTrack = {
     track_name: "No track",
-    artists: [""],
-    album_art_url: "https://via.placeholder.com/400x400?text=No+Track"
+    artists: ["Capture vibe to start"],
+    album_art_url: ""
   };
 
   const displayTrack = track || defaultTrack;
@@ -138,14 +138,6 @@ export default function MusicPlayer({ track }: MusicPlayerProps) {
       maw="350px"
       mx="auto"
     >
-
-      {/* Main album art */}
-      <Image
-        radius="md"
-        src={displayTrack.album_art_url}
-        h="100%"
-        fit="cover"
-      />
 
       {/* Track info overlay */}
       <Box
@@ -167,28 +159,42 @@ export default function MusicPlayer({ track }: MusicPlayerProps) {
         </Text>
       </Box>
 
+      {/* Main album art */}
       {/* Play button overlay */}
-      <ActionIcon
-        size={60}
-        radius="xl"
-        variant="filled"
-        color="rgba(0, 0, 0, 0.7)"
-        pos="absolute"
-        top="50%"
-        left="50%"
-        style={{ transform: 'translate(-50%, -50%)' }}
-        onClick={handlePlayPause}
-        loading={isLoading}
-        disabled={!track}
-      >
-        {isPlaying ? (
-          <IconPlayerPause size={30} color="white" />
-        ) : (
-          <IconPlayerPlay size={30} color="white" />
-        )}
-      </ActionIcon>
+      {displayTrack.album_art_url && (
+        <Box>
+          <Image
+            radius="md"
+            src={displayTrack.album_art_url}
+            h="100%"
+            fit="cover"
+          />
+          <ActionIcon
+            size={60}
+            radius="xl"
+            variant="filled"
+            color="rgba(0, 0, 0, 0.7)"
+            pos="absolute"
+            top="50%"
+            left="50%"
+            style={{ transform: 'translate(-50%, -50%)' }}
+            onClick={handlePlayPause}
+            loading={isLoading}
+            disabled={!track}
+          >
+            {isPlaying ? (
+              <IconPlayerPause size={30} color="white" />
+            ) : (
+              <IconPlayerPlay size={30} color="white" />
+            )}
+          </ActionIcon>
+        </Box>
+      )}
 
-      {/* Up next image - keeping as placeholder for now */}
+
+
+
+      {/* Up next image - keeping as placeholder for now
       <Box
         pos="absolute"
         bottom={16}
@@ -202,7 +208,7 @@ export default function MusicPlayer({ track }: MusicPlayerProps) {
           h="100%"
           fit="cover"
         />
-      </Box>
+      </Box> */}
     </Box>
   );
 }

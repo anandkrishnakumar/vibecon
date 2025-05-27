@@ -98,15 +98,15 @@ const LiveCam = forwardRef<LiveCamRef, LiveCamProps>(({ onCameraReady }, ref) =>
   const hasMutipleCameras = availableCameras.length > 1;
 
   return (
-    <div className="relative">
+    <div className="relative w-fit mx-auto -mt-8">
       <video
         ref={videoRef}
         autoPlay
         muted
         playsInline
-        className="w-2/5 h-1/2 object-cover rounded-2xl shadow-lg mx-auto block"
+        className="w-3/5 object-cover rounded-2xl shadow-lg mx-auto block"
       />
-      
+
       {/* Camera switch button - only show if multiple cameras available */}
       {hasMutipleCameras && (
         <button
@@ -114,21 +114,22 @@ const LiveCam = forwardRef<LiveCamRef, LiveCamProps>(({ onCameraReady }, ref) =>
           className="absolute top-2 right-2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-70 transition-all"
           title="Switch Camera"
         >
-          <svg 
-            width="20" 
-            height="20" 
-            viewBox="0 0 24 24" 
-            fill="none" 
-            stroke="currentColor" 
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
             strokeWidth="2"
           >
-            <path d="M9 12l2 2 4-4"/>
-            <path d="M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9c2.12 0 4.07.74 5.63 1.97"/>
-            <path d="M17 3l4 4-4 4"/>
+            <path d="M17 1l4 4-4 4" />
+            <path d="M3 11V9a4 4 0 0 1 4-4h14" />
+            <path d="M7 23l-4-4 4-4" />
+            <path d="M21 13v2a4 4 0 0 1-4 4H3" />
           </svg>
         </button>
       )}
-      
+
       {/* Hidden canvas for capturing snapshots */}
       <canvas ref={canvasRef} style={{ display: 'none' }} />
     </div>

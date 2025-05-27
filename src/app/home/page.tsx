@@ -97,7 +97,7 @@ export default function Home() {
             alt="VibeCon Logo"
             width={400}
             height={400}
-            className="mx-auto pt-5"
+            className="mx-auto pt-0"
             priority
           />
           <Spin

@@ -15,11 +15,11 @@ router = APIRouter()
 
 
 class PlayRequest(BaseModel):
-    track_uri: str
+    track_uris: list[str]
 
 # TODO: Handle expired tokens and refresh them - done
 # TODO: When play is called, if same track is already playing, just resume it - done
-# TODO: Move track exclusion to client side, so that it doesm't affect the server's state
+# TODO: Move track exclusion to client side, so that it doesn't affect the server's state
 # TODO: Enhance player to allow seeking & skipping tracks
 # TODO: Back camera
 
@@ -57,7 +57,7 @@ async def spotify_request(tokens: dict, operation):
 @router.post("/play")
 async def play_track(request: PlayRequest, tokens: dict = Depends(get_user_tokens)):
     """Play a track on Spotify."""
-    uri = request.track_uri
+    uris = request.track_uris
 
     async def play_operation(access_token):
         sp = setup_spotify_client(token=access_token)
@@ -71,13 +71,26 @@ async def play_track(request: PlayRequest, tokens: dict = Depends(get_user_token
 
         # Check if the track is already playing
         current_playback = sp.current_playback()
-        if current_playback and current_playback.get('item', {}).get('uri') == uri:
+        current_uri = None
+        if current_playback and current_playback.get('item', {}).get('uri') in uris:
             sp.start_playback(device_id=device_id)  # Resume playback
-            return {"message": "Track resumed", "track_uri": uri}
-        
+            current_uri = current_playback['item']['uri']
+
         # If not playing, start playback
-        sp.start_playback(uris=[uri], device_id=device_id)
-        return {"message": "Track is now playing", "track_uri": uri}
+        else:
+            sp.start_playback(uris=[uris[0]], device_id=device_id)
+            current_uri = uris[0]
+
+        # Add rest of the URIs to the queue
+        # Get the current queue to avoid duplicates
+        current_queue_uris = [item['uri'] for item in sp.queue()['queue']]
+        for uri in uris:
+            if uri != current_uri:
+                if uri not in current_queue_uris:
+                    # Avoid adding the same track to the queue
+                    sp.add_to_queue(uri)
+
+        return {"message": "Track playing", "track_uri": uri}
 
     return await spotify_request(tokens, play_operation)
 
@@ -101,6 +114,27 @@ async def pause_track(tokens: dict = Depends(get_user_tokens)):
 
     return await spotify_request(tokens, pause_operation)
 
+@router.get("/current-playback")
+async def current_playback(tokens: dict = Depends(get_user_tokens)):
+    """Get the current playback state from Spotify."""
+
+    async def playback_operation(access_token):
+        sp = setup_spotify_client(token=access_token)
+        device_id = get_active_device_id(token=access_token)
+
+        if not device_id:
+            raise HTTPException(
+                status_code=400,
+                detail="No active device found. Please start playing Spotify on any device to activate it."
+            )
+
+        playback = sp.current_playback()
+        if not playback:
+            return {"message": "No track is currently playing"}
+
+        return playback
+
+    return await spotify_request(tokens, playback_operation)
 
 def setup_spotify_client(token=None) -> spotipy.Spotify:
     if token:

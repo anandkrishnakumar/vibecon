@@ -86,7 +86,7 @@ export default function Spin({ onVibeDataChange, onTrackRecommendation }: SpinPr
       const trackData = await fetchTrackRecommendation(vibeData);
       onTrackRecommendation?.(trackData);
 
-      setIsSpinning(true);
+      // setIsSpinning(true);
     } catch (error) {
       console.error('Error during spin process:', error);
       onVibeDataChange?.(null);
@@ -125,7 +125,7 @@ export default function Spin({ onVibeDataChange, onTrackRecommendation }: SpinPr
         size="md"
         className="mb-4 mt-4"
       >
-        {isSpinning ? 'Stop Spinning' : 'Start Spinning'}
+        {isSpinning ? 'Stop Spinning' : 'Capture Vibe'}
       </Button>
       
       {!cameraReady && (

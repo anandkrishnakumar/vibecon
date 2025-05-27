@@ -17,8 +17,8 @@ router = APIRouter()
 class PlayRequest(BaseModel):
     track_uri: str
 
-# TODO: Handle expired tokens and refresh them
-# TODO: When play is called, if same track is already playing, just resume
+# TODO: Handle expired tokens and refresh them - done
+# TODO: When play is called, if same track is already playing, just resume it - done
 # TODO: Move track exclusion to client side, so that it doesm't affect the server's state
 # TODO: Enhance player to allow seeking & skipping tracks
 # TODO: Back camera
@@ -69,6 +69,13 @@ async def play_track(request: PlayRequest, tokens: dict = Depends(get_user_token
                 detail="No active device found. Please start playing Spotify on any device to activate it."
             )
 
+        # Check if the track is already playing
+        current_playback = sp.current_playback()
+        if current_playback and current_playback.get('item', {}).get('uri') == uri:
+            sp.start_playback(device_id=device_id)  # Resume playback
+            return {"message": "Track resumed", "track_uri": uri}
+        
+        # If not playing, start playback
         sp.start_playback(uris=[uri], device_id=device_id)
         return {"message": "Track is now playing", "track_uri": uri}
 

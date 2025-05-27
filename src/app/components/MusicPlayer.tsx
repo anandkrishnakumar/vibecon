@@ -46,9 +46,11 @@ export default function MusicPlayer({ track }: MusicPlayerProps) {
   };
 
   // If response contains a new token, update localStorage
-  const handleTokenUpdate = (data: any) => {
+  const handleTokenUpdate = (data: { spotify_access_token?: string; spotify_refresh_token?: string }) => {
     if (data.spotify_access_token) {
       localStorage.setItem('spotify_access_token', data.spotify_access_token);
+    }
+    if (data.spotify_refresh_token) {
       localStorage.setItem('spotify_refresh_token', data.spotify_refresh_token);
     }
   }

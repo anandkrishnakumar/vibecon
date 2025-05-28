@@ -1,46 +1,18 @@
 'use client';
 
 import Image from "next/image";
-import { useEffect, useState } from "react";
-import { createTheme, MantineProvider } from "@mantine/core";
+import { useEffect, useState, useCallback } from "react";
 import { Group } from "@mantine/core";
-import { Notifications } from "@mantine/notifications";
 
 import Spin from "../components/Spin";
 import VibeViz from "../components/VibeViz";
 import MusicPlayer from "../components/MusicPlayer";
 
-// Define interfaces at the top
-interface VibeData {
-  aspect: string;
-  value: number;
-}
+// Types
+import type { VibeData, Track } from "../types";
 
-interface Track {
-  track_name: string;
-  artists: string[];
-  uri: string;
-  album_art_url: string;
-}
-
-const theme = createTheme({
-  colors: {
-    dark: [
-      '#C1C2C5',
-      '#A6A7AB',
-      '#909296',
-      '#5c5f66',
-      '#373A40',
-      '#2C2E33',
-      '#25262b',
-      '#1A1B1E',
-      '#141517',
-      '#101113',
-    ],
-  },
-  primaryColor: 'blue',
-  defaultRadius: 'md',
-});
+// Hooks
+import { useTrackRecommendation } from "../hooks/useTrackRecommendation";
 
 export default function Home() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -72,44 +44,59 @@ export default function Home() {
     }
   };
 
+  // Use the hook to get the recommendation function
+  const { fetchTrackRecommendation } = useTrackRecommendation();
+
+  // Create a recommendation function that uses current vibe data
+  const getTrackRecommendation = useCallback(async (): Promise<Track | null> => {
+    if (!vibeData) {
+      console.log('No vibe data available for recommendation');
+      return null;
+    }
+
+    try {
+      const track = await fetchTrackRecommendation(vibeData);
+      console.log('Continuous track recommendation:', track);
+      return track;
+    } catch (error) {
+      console.error('Error getting track recommendation:', error);
+      return null;
+    }
+  }, [vibeData, fetchTrackRecommendation]);
+
   if (!isAuthenticated) {
     return (
-      <MantineProvider theme={theme}>
-        <div className="flex items-center justify-center min-h-screen bg-black text-white">
-          <Image
-            src="/vibecon.svg"
-            alt="VibeCon Logo"
-            width={500}
-            height={500}
-            className="mx-auto pt-10"
-            priority
-          />
-        </div>
-      </MantineProvider>
-    )}
-  else {
+      <div className="flex items-center justify-center min-h-screen bg-black text-white">
+        <Image
+          src="/vibecon.svg"
+          alt="VibeCon Logo"
+          width={500}
+          height={500}
+          className="mx-auto pt-10"
+          priority
+        />
+      </div>
+    );
+  } else {
     return (
-      <MantineProvider theme={theme}>
-        <Notifications />
-        <div className="min-h-screen bg-black text-white">
-          <Image
-            src="/vibecon.svg"
-            alt="VibeCon Logo"
-            width={400}
-            height={400}
-            className="mx-auto pt-0"
-            priority
-          />
-          <Spin
-            onVibeDataChange={handleVibeDataChange}
-            onTrackRecommendation={handleTrackRecommendation}
-          />
-          <Group grow h={300}>
-            <VibeViz data={vibeData} />
-            <MusicPlayer track={currentTrack} />
-          </Group>
-        </div>
-      </MantineProvider>
+      <div className="min-h-screen bg-black text-white">
+        <Image
+          src="/vibecon.svg"
+          alt="VibeCon Logo"
+          width={400}
+          height={400}
+          className="mx-auto pt-0"
+          priority
+        />
+        <Spin
+          onVibeDataChange={handleVibeDataChange}
+          onTrackRecommendation={handleTrackRecommendation}
+        />
+        <Group grow h={300}>
+          <VibeViz data={vibeData} />
+          <MusicPlayer track={currentTrack} getTrackRecommendation={getTrackRecommendation} />
+        </Group>
+      </div>
     );
   }
 }

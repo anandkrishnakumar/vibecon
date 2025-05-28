@@ -72,7 +72,7 @@ def mock_get_song_recommendation(image_url: str = "https://as2.ftcdn.net/v2/jpg/
         artist_name="ACDC",
     )
 
-@router.post("/vibe")
+# @router.post("/vibe")
 @mock
 def mock_get_vibe(request: VibeRequest) -> List[Dict[str, Union[str, float]]]:
     """
@@ -110,7 +110,7 @@ def mock_get_vibe(request: VibeRequest) -> List[Dict[str, Union[str, float]]]:
     ]
 
 
-# @router.post("/vibe")
+@router.post("/vibe")
 def get_vibe(request: VibeRequest) -> List[Dict[str, Union[str, float]]]:
     """
     Get the vibe of a song based on an image URL.

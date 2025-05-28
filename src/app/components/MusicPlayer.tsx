@@ -1,134 +1,186 @@
 'use client';
 
-import { useState } from 'react';
-import { Image, Box, ActionIcon, Text } from '@mantine/core';
-import { IconPlayerPlay, IconPlayerPause } from '@tabler/icons-react';
+import { useState, useEffect, useRef } from 'react';
+import { Image, Box, ActionIcon, Text, Group } from '@mantine/core';
+import { IconPlayerPlay, IconPlayerPause, IconPlayerTrackNext } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 
-interface Track {
-  track_name: string;
-  artists: string[];
-  uri: string;
-  album_art_url: string;
-}
+import type { Track, MusicPlayerProps } from "../types";
+import { useSpotifyPlayer } from "../hooks/useSpotifyPlayer";
+import { get } from 'http';
 
-interface MusicPlayerProps {
-  track?: Track | null;
-}
-
-export default function MusicPlayer({ track }: MusicPlayerProps) {
+export default function MusicPlayer({ track, getTrackRecommendation }: MusicPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [trackQueue, setTrackQueue] = useState<Track[]>([]);
+  const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
+  const [currentlyPlayingTrack, setCurrentlyPlayingTrack] = useState<Track | null>(null); // Add this!
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  let baseUrl = "https://vibecon.onrender.com";
-  if (process.env.NODE_ENV === 'development') {
-    baseUrl = "http://localhost:3000";
-  }
+  const { baseUrl, makeAuthenticatedRequest, handleTokenUpdate, playTrack, pausePlayback, getCurrentPlayback } = useSpotifyPlayer();
 
-  // Create a utility function for authenticated requests
-  const makeAuthenticatedRequest = async (url: string, options: RequestInit = {}) => {
-    const token = localStorage.getItem('spotify_access_token');
-    const refreshToken = localStorage.getItem('spotify_refresh_token');
-
-    if (!token) {
-      throw new Error('No access token available');
+  // Update currently playing track when the prop changes
+  useEffect(() => {
+    if (track) {
+      setCurrentlyPlayingTrack(track);
     }
+  }, [track]);
 
-    return fetch(url, {
-      ...options,
-      headers: {
-        ...options.headers,
-        'Authorization': `Bearer ${token}`,
-        'X-Refresh-Token': refreshToken || '',
-        'Content-Type': 'application/json',
-      },
-    });
-  };
-
-  // If response contains a new token, update localStorage
-  const handleTokenUpdate = (data: { spotify_access_token?: string; spotify_refresh_token?: string }) => {
-    if (data.spotify_access_token) {
-      localStorage.setItem('spotify_access_token', data.spotify_access_token);
-    }
-    if (data.spotify_refresh_token) {
-      localStorage.setItem('spotify_refresh_token', data.spotify_refresh_token);
-    }
-  }
-
-  const handlePlayPause = async () => {
-    if (!track) return;
-
-    setIsLoading(true);
-
-    try {
-      if (isPlaying) {
-        // Call pause endpoint
-        const response = await makeAuthenticatedRequest(`${baseUrl}/api/pause`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-
-        if (response.ok) {
-          setIsPlaying(false);
-          const data = await response.json();
-          handleTokenUpdate(data);
-        } else {
-          console.error('Failed to pause playback');
-        }
-      } else {
-        // Call play endpoint with track URI
-        const response = await makeAuthenticatedRequest(`${baseUrl}/api/play`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ track_uri: track.uri })
-        });
-
-        if (response.ok) {
-          setIsPlaying(true);
-          const data = await response.json();
-          handleTokenUpdate(data);
-        } else {
-          const errorData = await response.json();
-          if (response.status === 400) {
-            console.log('Showing error notification for 400 response');
-            notifications.show({
-              title: 'Playback Error',
-              message: errorData.detail,
-              color: 'red',
-              radius: 'lg',
-              withCloseButton: true,
-            })
-          } else {
-            notifications.show({
-              title: 'Playback Error',
-              message: errorData.detail || 'Failed to play track',
-              color: 'red',
-              radius: 'lg',
-            });
-          }
-          // console.error('Failed to start playback');
-          // console.error('Response status:', response.status);
+  // If the current track is the last in the queue, get a new recommendation
+  useEffect(() => {
+    if (currentTrackIndex === trackQueue.length - 1) {
+      getTrackRecommendation?.().then(nextTrack => {
+        if (nextTrack) {
+          setTrackQueue(prev => [...prev, nextTrack]);
         }
       }
-    } catch (error) {
-      console.error('Error calling API:', error);
+      ).catch(error => {
+        console.error('Error getting track recommendation:', error);
+        notifications.show({
+          title: 'Track Recommendation Error',
+          message: 'Failed to get next track recommendation.',
+          color: 'red',
+          radius: 'lg',
+        });
+      });
+    }
+  }, [currentlyPlayingTrack, trackQueue, currentTrackIndex, getTrackRecommendation]);
+
+  // Add this helper function to get the next track
+  const getNextTrack = () => {
+    if (trackQueue.length > currentTrackIndex + 1) {
+      return trackQueue[currentTrackIndex + 1];
+    }
+    return null;
+  };
+
+  // Skip function
+  const handleSkip = async () => {
+    if (!getTrackRecommendation) return;
+
+    setIsTransitioning(true); // Prevent duplicate skips
+    await playNextTrack();
+    setIsTransitioning(false); // Reset flag after completion
+  };
+
+
+  // Play next track using getTrackRecommendation
+  const playNextTrack = async () => {
+    if (trackQueue.length > currentTrackIndex + 1) {
+      // Play next track in queue
+      const nextTrack = trackQueue[currentTrackIndex + 1];
+      setCurrentTrackIndex(prev => prev + 1);
+      setCurrentlyPlayingTrack(nextTrack); // Update display track!
+      await playTrack(nextTrack.uri);
+    } else if (getTrackRecommendation) {
+      // Queue is empty, get new recommendation
+      try {
+        const nextTrack = await getTrackRecommendation();
+        if (nextTrack) {
+          setTrackQueue(prev => [...prev, nextTrack]);
+          setCurrentlyPlayingTrack(nextTrack); // Update display track!
+          await playTrack(nextTrack.uri);
+          setCurrentTrackIndex(trackQueue.length);
+        }
+      } catch (error) {
+        console.error('Error getting track recommendation:', error);
+      }
+    }
+  };
+
+
+  // Handle play/pause button
+  const handlePlayPause = async () => {
+    if (!currentlyPlayingTrack) return;
+
+    setIsLoading(true);
+    try {
+      if (isPlaying) {
+        await pausePlayback();
+      } else {
+        // Initialize queue if empty
+        if (trackQueue.length === 0) {
+          setTrackQueue([currentlyPlayingTrack]);
+          setCurrentTrackIndex(0);
+        }
+        setCurrentlyPlayingTrack(currentlyPlayingTrack); // Update display track!
+        await playTrack(currentlyPlayingTrack.uri);
+      }
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Default track info when no track is provided
-  const defaultTrack = {
+  // Use currentlyPlayingTrack for display instead of the prop
+  const displayTrack = currentlyPlayingTrack || track || {
     track_name: "No track",
     artists: ["Capture vibe to start"],
     album_art_url: ""
   };
 
-  const displayTrack = track || defaultTrack;
+  // Add a flag to prevent duplicate calls
+  const [isTransitioning, setIsTransitioning] = useState(false);
+
+  // Check playback state and handle track endings
+  const checkPlaybackState = async () => {
+    if (isTransitioning) return; // Prevent duplicate calls
+
+    try {
+      const response = await makeAuthenticatedRequest('/current-playback');
+
+      if (response.ok) {
+        const data = await response.json();
+        const isCurrentlyPlaying = data.is_playing;
+        const currentTrackUri = data.uri;
+        const progressMs = data.progress_ms;
+        const durationMs = data.duration_ms;
+
+        // Check if track is ending (within 3 seconds of completion)
+        if (progressMs && durationMs && (durationMs - progressMs < 3000) && isCurrentlyPlaying && !isTransitioning) {
+          setIsTransitioning(true); // Set flag to prevent duplicates
+          await playNextTrack();
+          setIsTransitioning(false); // Reset flag after completion
+          return;
+        }
+
+        // Update playing state based on current track
+        if (currentlyPlayingTrack && currentTrackUri === currentlyPlayingTrack.uri) {
+          setIsPlaying(isCurrentlyPlaying);
+        } else if (track && currentTrackUri === track.uri) {
+          setIsPlaying(isCurrentlyPlaying);
+        } else {
+          setIsPlaying(false);
+        }
+
+        handleTokenUpdate(data);
+      }
+    } catch (error) {
+      console.error('Error checking playback state:', error);
+      setIsTransitioning(false); // Reset flag on error
+    }
+  };
+
+  // Set up polling for playback state
+  useEffect(() => {
+    if (!track) return;
+
+    // Clear existing interval
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+    }
+
+    // Check immediately
+    checkPlaybackState();
+
+    // Poll every second to catch track endings
+    intervalRef.current = setInterval(checkPlaybackState, 1000);
+
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
+  }, [track, trackQueue, currentTrackIndex]);
 
   return (
     <Box
@@ -138,7 +190,6 @@ export default function MusicPlayer({ track }: MusicPlayerProps) {
       maw="350px"
       mx="auto"
     >
-
       {/* Track info overlay */}
       <Box
         pos="absolute"
@@ -159,8 +210,7 @@ export default function MusicPlayer({ track }: MusicPlayerProps) {
         </Text>
       </Box>
 
-      {/* Main album art */}
-      {/* Play button overlay */}
+      {/* Album art with play button */}
       {displayTrack.album_art_url && (
         <Box>
           <Image
@@ -169,6 +219,8 @@ export default function MusicPlayer({ track }: MusicPlayerProps) {
             h="100%"
             fit="cover"
           />
+
+          {/* Play/Pause button - centered */}
           <ActionIcon
             size={60}
             radius="xl"
@@ -188,27 +240,72 @@ export default function MusicPlayer({ track }: MusicPlayerProps) {
               <IconPlayerPlay size={30} color="white" />
             )}
           </ActionIcon>
+
+          {/* Skip button - positioned to the right */}
+          <ActionIcon
+            size={50}
+            radius="xl"
+            variant="filled"
+            color="rgba(0, 0, 0, 0.6)"
+            pos="absolute"
+            top="50%"
+            right="70px"
+            style={{ transform: 'translateY(-50%)' }}
+            onClick={handleSkip}
+            loading={isTransitioning}
+            disabled={!getTrackRecommendation}
+          >
+            <IconPlayerTrackNext size={24} color="white" />
+          </ActionIcon>
+
+          {/* Next track preview - bottom right */}
+          {getNextTrack() && (
+            <Box
+              pos="absolute"
+              bottom="12px"
+              right="12px"
+              w="60px"
+              h="60px"
+              style={{
+                borderRadius: '8px',
+                border: '0px solid rgba(255, 255, 255, 0.8)',
+                overflow: 'hidden',
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)'
+              }}
+            >
+              <Image
+                src={getNextTrack()?.album_art_url}
+                w="100%"
+                h="100%"
+                fit="cover"
+                alt="Next track"
+              />
+
+              {/* Small "NEXT" label overlay */}
+              <Box
+                pos="absolute"
+                bottom={0}
+                left={0}
+                right={0}
+                style={{
+                  background: 'rgba(0, 0, 0, 0.7)',
+                  padding: '2px 4px'
+                }}
+              >
+                <Text
+                  size="xs"
+                  c="white"
+                  fw={600}
+                  ta="center"
+                  style={{ fontSize: '10px', lineHeight: 1 }}
+                >
+                  UP NEXT
+                </Text>
+              </Box>
+            </Box>
+          )}
         </Box>
       )}
-
-
-
-
-      {/* Up next image - keeping as placeholder for now
-      <Box
-        pos="absolute"
-        bottom={16}
-        right={16}
-        w={80}
-        h={80}
-      >
-        <Image
-          radius="sm"
-          src="https://i.scdn.co/image/ab67616d0000b2731bfa23b13d0504fb90c37b39"
-          h="100%"
-          fit="cover"
-        />
-      </Box> */}
     </Box>
   );
 }

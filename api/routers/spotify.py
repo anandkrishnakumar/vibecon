@@ -132,7 +132,15 @@ async def current_playback(tokens: dict = Depends(get_user_tokens)):
         if not playback:
             return {"message": "No track is currently playing"}
 
-        return playback
+        return {
+            "is_playing": playback['is_playing'],
+            "track_name"    : playback['item']['name'],
+            "artists"       : [artist['name'] for artist in playback['item']['artists']],
+            "uri"           : playback['item']['uri'],
+            "album_art_url" : playback['item']['album']['images'][0]['url'] if playback['item']['album']['images'] else None,
+            "progress_ms"  : playback['progress_ms'],
+            "duration_ms" : playback['item']['duration_ms'],
+        }
 
     return await spotify_request(tokens, playback_operation)
 

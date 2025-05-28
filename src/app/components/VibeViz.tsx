@@ -11,14 +11,8 @@ const mockData = [
   { aspect: 'tempo', value: 120 },
 ];
 
-interface VibeData {
-  aspect: string;
-  value: number;
-}
-
-interface VibeVizProps {
-  data?: VibeData[] | null;
-}
+// Types
+import type { VibeData, VibeVizProps } from "../types";
 
 export default function VibeViz({ data }: VibeVizProps) {
   // Use API data if available, otherwise fall back to mock data

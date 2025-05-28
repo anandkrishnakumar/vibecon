@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useImperativeHandle, forwardRef, useState } from 'react';
 
 // import types
-import type { LiveCamRef, LiveCamProps } from '@/app/types/liveCam';
+import type { LiveCamRef, LiveCamProps } from "../types";
 
 const LiveCam = forwardRef<LiveCamRef, LiveCamProps>(({ onCameraReady }, ref) => {
   const videoRef = useRef<HTMLVideoElement>(null);

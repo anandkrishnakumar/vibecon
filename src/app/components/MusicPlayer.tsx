@@ -1,13 +1,12 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Image, Box, ActionIcon, Text, Group } from '@mantine/core';
+import { Image, Box, ActionIcon, Text } from '@mantine/core';
 import { IconPlayerPlay, IconPlayerPause, IconPlayerTrackNext } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 
 import type { Track, MusicPlayerProps } from "../types";
 import { useSpotifyPlayer } from "../hooks/useSpotifyPlayer";
-import { get } from 'http';
 
 export default function MusicPlayer({ track, getTrackRecommendation }: MusicPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -17,7 +16,7 @@ export default function MusicPlayer({ track, getTrackRecommendation }: MusicPlay
   const [currentlyPlayingTrack, setCurrentlyPlayingTrack] = useState<Track | null>(null); // Add this!
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  const { baseUrl, makeAuthenticatedRequest, handleTokenUpdate, playTrack, pausePlayback, getCurrentPlayback } = useSpotifyPlayer();
+  const { makeAuthenticatedRequest, handleTokenUpdate, playTrack, pausePlayback } = useSpotifyPlayer();
 
   // Update currently playing track when the prop changes
   useEffect(() => {

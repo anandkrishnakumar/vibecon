@@ -12,7 +12,7 @@ const mockData = [
 ];
 
 // Types
-import type { VibeData, VibeVizProps } from "../types";
+import type { VibeVizProps } from "../types";
 
 export default function VibeViz({ data }: VibeVizProps) {
   // Use API data if available, otherwise fall back to mock data

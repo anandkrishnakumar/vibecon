@@ -23,3 +23,18 @@ export interface MusicPlayerProps {
 export interface VibeVizProps {
   data?: VibeData[] | null;
 }
+
+
+export interface LiveCamRef {
+  captureSnapshot: () => string | null;
+  switchCamera: () => Promise<void>;
+}
+
+export interface LiveCamProps {
+  onCameraReady?: (ready: boolean) => void;
+}
+
+export interface TokenUpdateData {
+  spotify_access_token?: string;
+  spotify_refresh_token?: string;
+}

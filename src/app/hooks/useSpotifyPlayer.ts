@@ -1,6 +1,8 @@
 import { useCallback } from 'react';
 import { notifications } from '@mantine/notifications';
 
+import type { TokenUpdateData } from '../types';
+
 export function useSpotifyPlayer() {
   const baseUrl =
     process.env.NODE_ENV === 'development'
@@ -27,7 +29,7 @@ export function useSpotifyPlayer() {
     [baseUrl]
   );
 
-  const handleTokenUpdate = useCallback((data: any) => {
+  const handleTokenUpdate = useCallback((data: TokenUpdateData) => {
     if (data.spotify_access_token) {
       localStorage.setItem('spotify_access_token', data.spotify_access_token);
     }

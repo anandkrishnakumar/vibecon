@@ -2,14 +2,8 @@
 
 import React, { useEffect, useRef, useImperativeHandle, forwardRef, useState } from 'react';
 
-interface LiveCamRef {
-  captureSnapshot: () => string | null;
-  switchCamera: () => Promise<void>;
-}
-
-interface LiveCamProps {
-  onCameraReady?: (ready: boolean) => void;
-}
+// import types
+import type { LiveCamRef, LiveCamProps } from '@/app/types/liveCam';
 
 const LiveCam = forwardRef<LiveCamRef, LiveCamProps>(({ onCameraReady }, ref) => {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -98,37 +92,39 @@ const LiveCam = forwardRef<LiveCamRef, LiveCamProps>(({ onCameraReady }, ref) =>
   const hasMutipleCameras = availableCameras.length > 1;
 
   return (
-    <div className="relative w-fit mx-auto -mt-8">
-      <video
-        ref={videoRef}
-        autoPlay
-        muted
-        playsInline
-        className="w-3/5 object-cover rounded-2xl shadow-lg mx-auto block"
-      />
+    <div className="w-fit mx-auto -mt-8">
+      <div className="relative w-3/5 mx-auto">
+        <video
+          ref={videoRef}
+          autoPlay
+          muted
+          playsInline
+          className="w-full object-cover rounded-2xl shadow-lg"
+        />
 
-      {/* Camera switch button - only show if multiple cameras available */}
-      {hasMutipleCameras && (
-        <button
-          onClick={switchCamera}
-          className="absolute top-2 right-2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-70 transition-all"
-          title="Switch Camera"
-        >
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
+        {/* Camera switch button - now directly on video */}
+        {hasMutipleCameras && (
+          <button
+            onClick={switchCamera}
+            className="absolute top-2 right-2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-70 transition-all"
+            title="Switch Camera"
           >
-            <path d="M17 1l4 4-4 4" />
-            <path d="M3 11V9a4 4 0 0 1 4-4h14" />
-            <path d="M7 23l-4-4 4-4" />
-            <path d="M21 13v2a4 4 0 0 1-4 4H3" />
-          </svg>
-        </button>
-      )}
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <path d="M17 1l4 4-4 4" />
+              <path d="M3 11V9a4 4 0 0 1 4-4h14" />
+              <path d="M7 23l-4-4 4-4" />
+              <path d="M21 13v2a4 4 0 0 1-4 4H3" />
+            </svg>
+          </button>
+        )}
+      </div>
 
       {/* Hidden canvas for capturing snapshots */}
       <canvas ref={canvasRef} style={{ display: 'none' }} />

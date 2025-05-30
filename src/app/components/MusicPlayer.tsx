@@ -22,6 +22,9 @@ export default function MusicPlayer({ track, getTrackRecommendation }: MusicPlay
   useEffect(() => {
     if (track) {
       setCurrentlyPlayingTrack(track);
+      setIsPlaying(false); // Reset playing state when a new track is set
+      setTrackQueue([track]); // Initialize queue with the new track
+      setCurrentTrackIndex(0); // Reset index to start with the new track
     }
   }, [track]);
 

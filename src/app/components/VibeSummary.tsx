@@ -13,9 +13,9 @@ const mockData = {
         { aspect: 'tempo', value: 120 },
     ],
     summary: {
-        text: 'sleepy',
-        color: 'yellow',
-        emoji: '😴'
+        text: '',
+        color: '',
+        emoji: ''
     }
 };
 

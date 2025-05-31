@@ -18,9 +18,15 @@ export default function VibeViz({ data }: VibeVizProps) {
   // Use API data if available, otherwise fall back to mock data
   const chartData = data || mockData;
 
+
   // Remove tempo from the chart data
   const filteredData = chartData.filter(item => item.aspect !== 'tempo');
 
+  // If mockData, don't render the chart
+  if (chartData === mockData) {
+    return null;
+  }
+  // Render the bar chart with the filtered data
   return (
     <BarChart
       h={300}

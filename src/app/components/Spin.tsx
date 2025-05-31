@@ -19,31 +19,37 @@ export default function Spin({ onVibeDataChange, onTrackRecommendation }: SpinPr
   const { fetchTrackRecommendation } = useTrackRecommendation();
 
   const handleSpinStart = useCallback(async () => {
-    try {
-      setLoading(true);
+  try {
+    setLoading(true);
 
-      // Capture snapshot from LiveCam
-      const base64Image = liveCamRef.current?.captureSnapshot();
-      if (!base64Image) {
-        throw new Error('Failed to capture image from camera');
-      }
-
-      // Fetch vibe data first
-      const vibeData = await fetchVibeData(base64Image);
-      onVibeDataChange?.(vibeData);
-
-      // Then fetch track recommendation based on vibe data
-      const track = await fetchTrackRecommendation(vibeData);
-      onTrackRecommendation?.(track);
-
-    } catch (error) {
-      console.error('Error during spin process:', error);
-      onVibeDataChange?.(null);
-      onTrackRecommendation?.(null);
-    } finally {
-      setLoading(false);
+    // Capture snapshot from LiveCam
+    const base64Image = liveCamRef.current?.captureSnapshot();
+    if (!base64Image) {
+      throw new Error('Failed to capture image from camera');
     }
-  }, [fetchVibeData, fetchTrackRecommendation, onVibeDataChange, onTrackRecommendation]);
+
+    // Fetch vibe data first
+    const vibeData = await fetchVibeData(base64Image);
+    onVibeDataChange?.(vibeData);
+    
+    // Set loading to false immediately after vibe data is processed
+    setLoading(false);
+
+    // Then fetch track recommendation in the background (don't await)
+    fetchTrackRecommendation(vibeData).then(track => {
+      onTrackRecommendation?.(track);
+    }).catch(error => {
+      console.error('Error fetching track recommendation:', error);
+      onTrackRecommendation?.(null);
+    });
+
+  } catch (error) {
+    console.error('Error during spin process:', error);
+    onVibeDataChange?.(null);
+    onTrackRecommendation?.(null);
+    setLoading(false); // Also set loading to false on error
+  }
+}, [fetchVibeData, fetchTrackRecommendation, onVibeDataChange, onTrackRecommendation]);
 
   const handleClick = useCallback(async () => {
     if (!isSpinning) {
@@ -66,16 +72,24 @@ export default function Spin({ onVibeDataChange, onTrackRecommendation }: SpinPr
       />
       
       <Button 
-        variant="filled" 
-        color={isSpinning ? 'red' : 'blue'}
-        onClick={handleClick} 
-        loading={loading}
-        disabled={loading || !cameraReady}
-        size="md"
-        className="mb-4 mt-4"
-      >
-        {isSpinning ? 'Stop Spinning' : 'Capture Vibe'}
-      </Button>
+  variant="filled" 
+  color={isSpinning ? 'red' : 'blue'}
+  onClick={handleClick} 
+  loading={false}
+  disabled={loading || !cameraReady}
+  size="md"
+  className={`mb-4 mt-4 ${loading ? 'animate-glitch' : ''}`}
+>
+  {loading ? (
+    <span className="relative">
+      Vibing...
+      <span className="absolute inset-0 text-red-400 animate-pulse">Vibing...</span>
+      <span className="absolute inset-0 text-blue-400 animate-ping">Vibing...</span>
+    </span>
+  ) : (
+    isSpinning ? 'Stop Spinning' : 'Capture Vibe'
+  )}
+</Button>
       
       {!cameraReady && (
         <p className="text-sm text-gray-500 mt-2">

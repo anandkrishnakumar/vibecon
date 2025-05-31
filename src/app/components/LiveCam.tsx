@@ -93,6 +93,9 @@ const LiveCam = forwardRef<LiveCamRef, LiveCamProps>(({ onCameraReady }, ref) =>
 
   return (
     <div className="w-fit mx-auto -mt-8">
+      <p className="text-center text-gray-500 mb-4">What's your vibe today?</p>
+      
+      {/* Video element for live camera feed */}
       <div className="relative w-3/5 mx-auto">
         <video
           ref={videoRef}

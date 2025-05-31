@@ -8,11 +8,11 @@ export function useTrackRecommendation() {
       : 'https://vibecon.onrender.com';
 
   const fetchTrackRecommendation = useCallback(
-    async (vibeData: VibeData[]): Promise<Track> => {
+    async (vibeData: VibeData): Promise<Track> => {
       const response = await fetch(`${baseUrl}/api/get-track`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ vibe_data: vibeData }),
+        body: JSON.stringify({ vibe_data: vibeData.vibe }),
       });
 
       if (!response.ok) {

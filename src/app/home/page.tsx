@@ -5,6 +5,7 @@ import { useEffect, useState, useCallback } from "react";
 import { Group } from "@mantine/core";
 
 import Spin from "../components/Spin";
+import VibeSummary from "../components/VibeSummary";
 import VibeViz from "../components/VibeViz";
 import MusicPlayer from "../components/MusicPlayer";
 
@@ -16,7 +17,7 @@ import { useTrackRecommendation } from "../hooks/useTrackRecommendation";
 
 export default function Home() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [vibeData, setVibeData] = useState<VibeData[] | null>(null);
+  const [vibeData, setVibeData] = useState<VibeData | null>(null);
   const [currentTrack, setCurrentTrack] = useState<Track | null>(null);
 
   useEffect(() => {
@@ -31,7 +32,7 @@ export default function Home() {
     setIsAuthenticated(true);
   }, []);
 
-  const handleVibeDataChange = (data: VibeData[] | null) => {
+  const handleVibeDataChange = (data: VibeData | null) => {
     setVibeData(data);
   };
 
@@ -92,6 +93,7 @@ export default function Home() {
           onVibeDataChange={handleVibeDataChange}
           onTrackRecommendation={handleTrackRecommendation}
         />
+        <VibeSummary data={vibeData} />
         <Group grow h={300}>
           <VibeViz data={vibeData} />
           <MusicPlayer track={currentTrack} getTrackRecommendation={getTrackRecommendation} />

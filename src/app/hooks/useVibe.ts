@@ -8,7 +8,7 @@ export function useVibe() {
       : 'https://vibecon.onrender.com';
 
   const fetchVibeData = useCallback(
-    async (base64Image: string): Promise<VibeData[]> => {
+    async (base64Image: string): Promise<VibeData> => {
       const response = await fetch(`${baseUrl}/api/vibe`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -19,7 +19,7 @@ export function useVibe() {
         throw new Error(`Failed to fetch vibe data: ${response.status}`);
       }
 
-      const data: VibeData[] = await response.json();
+      const data: VibeData = await response.json();
       return data;
     },
     [baseUrl]

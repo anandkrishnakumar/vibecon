@@ -1,5 +1,5 @@
 from utils import mock
-from models import Track, Vibe
+from models import Track, VibeData
 from prompts import sys_prompt, sys_prompt_0
 from pydantic import BaseModel
 from fastapi import APIRouter
@@ -33,7 +33,8 @@ def construct_message(prompt: Union[str, List], role: str) -> Dict[str, Union[st
 
     Example:
         construct_message("Hello, how are you?", "user")
-        construct_message([{"type": "input_image", "image_url": "https://example.com/image.jpg"}], "user")
+        construct_message(
+            [{"type": "input_image", "image_url": "https://example.com/image.jpg"}], "user")
     """
     assert role in ["user", "assistant", "system"], "Invalid role specified"
     return {"role": role, "content": prompt}
@@ -72,46 +73,54 @@ def mock_get_song_recommendation(image_url: str = "https://as2.ftcdn.net/v2/jpg/
         artist_name="ACDC",
     )
 
+
 # @router.post("/vibe")
 @mock
-def mock_get_vibe(request: VibeRequest) -> List[Dict[str, Union[str, float]]]:
+def mock_get_vibe(request: VibeRequest) -> Dict[str, Union[Dict[str, str], List[Dict[str, Union[str, float]]]]]:
     """
     Mock function to simulate vibe extraction.
     """
-    return [
-        {
-            "aspect": "danceability",
-            "value": 0.2
-        },
-        {
-            "aspect": "energy",
-            "value": 0.15
-        },
-        {
-            "aspect": "speechiness",
-            "value": 0.05
-        },
-        {
-            "aspect": "acousticness",
-            "value": 0.85
-        },
-        {
-            "aspect": "instrumentalness",
-            "value": 0.6
-        },
-        {
-            "aspect": "valence",
-            "value": 0.3
-        },
-        {
-            "aspect": "tempo",
-            "value": 60.0
+    return {
+        "vibe": [
+            {
+                "aspect": "danceability",
+                "value": 0.2
+            },
+            {
+                "aspect": "energy",
+                "value": 0.15
+            },
+            {
+                "aspect": "speechiness",
+                "value": 0.05
+            },
+            {
+                "aspect": "acousticness",
+                "value": 0.85
+            },
+            {
+                "aspect": "instrumentalness",
+                "value": 0.6
+            },
+            {
+                "aspect": "valence",
+                "value": 0.3
+            },
+            {
+                "aspect": "tempo",
+                "value": 60.0
+            }
+        ],
+        "summary": {
+            "text": "happy",
+            "color": "#0000FF",
+            "emoji": "😊"
         }
-    ]
+    }
 
 
 @router.post("/vibe")
-def get_vibe(request: VibeRequest) -> List[Dict[str, Union[str, float]]]:
+def get_vibe(request: VibeRequest) -> Dict[str, Union[Dict, List]]:
     """
     Get the vibe of a song based on an image URL.
     """
@@ -124,12 +133,15 @@ def get_vibe(request: VibeRequest) -> List[Dict[str, Union[str, float]]]:
     response = client.responses.parse(
         model="gpt-4.1-mini",
         input=messages,
-        text_format=Vibe,
+        text_format=VibeData,
     )
 
     vibe_data = response.output_parsed
 
-    return [
-        {"aspect": aspect, "value": value}
-        for aspect, value in vibe_data.model_dump().items()
-    ]
+    return {
+        "vibe": [
+            {"aspect": aspect, "value": value}
+            for aspect, value in vibe_data.model_dump()['vibe'].items()
+        ],
+        "summary": vibe_data.model_dump()['summary']
+    }

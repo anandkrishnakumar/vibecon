@@ -1,6 +1,17 @@
-export interface VibeData {
+interface VibeAspects {
   aspect: string;
   value: number;
+}
+
+interface VibeSummary {
+  text: string;
+  color: string;
+  emoji?: string;
+}
+
+export interface VibeData {
+  vibe: VibeAspects[];
+  summary: VibeSummary;
 }
 
 export interface Track {
@@ -11,7 +22,7 @@ export interface Track {
 }
 
 export interface SpinProps {
-  onVibeDataChange?: (data: VibeData[] | null) => void;
+  onVibeDataChange?: (data: VibeData | null) => void;
   onTrackRecommendation?: (track: Track | null) => void;
 }
 
@@ -21,7 +32,7 @@ export interface MusicPlayerProps {
 }
 
 export interface VibeVizProps {
-  data?: VibeData[] | null;
+  data?: VibeData | null;
 }
 
 

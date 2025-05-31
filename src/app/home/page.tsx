@@ -5,8 +5,7 @@ import { useEffect, useState, useCallback } from "react";
 import { Group } from "@mantine/core";
 
 import Spin from "../components/Spin";
-import VibeSummary from "../components/VibeSummary";
-import VibeViz from "../components/VibeViz";
+import VibeCard from "../components/VibeCard";
 import MusicPlayer from "../components/MusicPlayer";
 
 // Types
@@ -93,9 +92,8 @@ export default function Home() {
           onVibeDataChange={handleVibeDataChange}
           onTrackRecommendation={handleTrackRecommendation}
         />
-        <VibeSummary data={vibeData} />
         <Group grow h={300}>
-          <VibeViz data={vibeData} />
+          <VibeCard data={vibeData} />
           <MusicPlayer track={currentTrack} getTrackRecommendation={getTrackRecommendation} />
         </Group>
       </div>

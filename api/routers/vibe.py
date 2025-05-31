@@ -76,41 +76,20 @@ def mock_get_song_recommendation(image_url: str = "https://as2.ftcdn.net/v2/jpg/
 
 # @router.post("/vibe")
 @mock
-def mock_get_vibe(request: VibeRequest) -> Dict[str, Union[Dict[str, str], List[Dict[str, Union[str, float]]]]]:
+def mock_get_vibe(request: VibeRequest) -> Dict[str, Union[Dict, List]]:
     """
     Mock function to simulate vibe extraction.
     """
     return {
-        "vibe": [
-            {
-                "aspect": "danceability",
-                "value": 0.2
-            },
-            {
-                "aspect": "energy",
-                "value": 0.15
-            },
-            {
-                "aspect": "speechiness",
-                "value": 0.05
-            },
-            {
-                "aspect": "acousticness",
-                "value": 0.85
-            },
-            {
-                "aspect": "instrumentalness",
-                "value": 0.6
-            },
-            {
-                "aspect": "valence",
-                "value": 0.3
-            },
-            {
-                "aspect": "tempo",
-                "value": 60.0
-            }
-        ],
+        "vibe": {
+            "danceability": 0.2,
+            "energy": 0.15,
+            "speechiness": 0.05,
+            "acousticness": 0.85,
+            "instrumentalness": 0.6,
+            "valence": 0.3,
+            "tempo": 60.0
+        },
         "summary": {
             "text": "happy",
             "color": "#0000FF",
@@ -138,10 +117,4 @@ def get_vibe(request: VibeRequest) -> Dict[str, Union[Dict, List]]:
 
     vibe_data = response.output_parsed
 
-    return {
-        "vibe": [
-            {"aspect": aspect, "value": value}
-            for aspect, value in vibe_data.model_dump()['vibe'].items()
-        ],
-        "summary": vibe_data.model_dump()['summary']
-    }
+    return vibe_data.model_dump()

@@ -82,9 +82,9 @@ export default function Spin({ onVibeDataChange, onTrackRecommendation }: SpinPr
 >
   {loading ? (
     <span className="relative">
-      Vibing...
-      <span className="absolute inset-0 text-red-400 animate-pulse">Vibing...</span>
-      <span className="absolute inset-0 text-blue-400 animate-ping">Vibing...</span>
+      Vibing
+      <span className="absolute inset-0 text-red-400 animate-pulse">Vibing</span>
+      <span className="absolute inset-0 text-blue-400 animate-ping">Vibing</span>
     </span>
   ) : (
     isSpinning ? 'Stop Spinning' : 'Capture Vibe'

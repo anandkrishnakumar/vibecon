@@ -12,7 +12,7 @@ export function useTrackRecommendation() {
       const response = await fetch(`${baseUrl}/api/get-track`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ vibe_data: vibeData.vibe }),
+        body: JSON.stringify({ vibe: vibeData.vibe }),
       });
 
       if (!response.ok) {

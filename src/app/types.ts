@@ -1,6 +1,11 @@
 interface VibeAspects {
-  aspect: string;
-  value: number;
+  danceability: number;
+  energy: number;
+  speechiness: number;
+  acousticness: number;
+  instrumentalness: number;
+  valence: number;
+  tempo?: number; // Optional, as it may not always be included
 }
 
 interface VibeSummary {
@@ -10,7 +15,7 @@ interface VibeSummary {
 }
 
 export interface VibeData {
-  vibe: VibeAspects[];
+  vibe: VibeAspects;
   summary: VibeSummary;
 }
 
@@ -31,7 +36,7 @@ export interface MusicPlayerProps {
   getTrackRecommendation?: () => Promise<Track | null>;
 }
 
-export interface VibeVizProps {
+export interface VibeCardProps {
   data?: VibeData | null;
 }
 

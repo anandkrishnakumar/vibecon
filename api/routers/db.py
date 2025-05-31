@@ -33,7 +33,7 @@ df_scaled = scaler.fit_transform(df_filtered)
 
 
 class VibeDataRequest(BaseModel):
-    vibe_data: List[dict]
+    vibe: dict
     track_count: int = 1
 
 
@@ -66,8 +66,7 @@ async def get_track(request: VibeDataRequest) -> dict:
     Get a track from the library based on the passed vibe.
     """
     # Convert the vibe_data list to a Vibe object
-    vibe_dict = {item["aspect"]: item["value"] for item in request.vibe_data}
-    vibe = Vibe(**vibe_dict)
+    vibe = Vibe(**request.vibe)
 
     track = lookup_track(vibe)
     track = search_spotify_track(track.track_name)
@@ -102,7 +101,8 @@ def lookup_track(vibe, count=1):
     vibe_row_scaled = scaler.transform(vibe_row)
 
     # Calculate the euclidean distance
-    distances = distance.cdist(df_scaled, vibe_row_scaled, 'euclidean').flatten()
+    distances = distance.cdist(
+        df_scaled, vibe_row_scaled, 'euclidean').flatten()
     print(f"Distances: {distances.shape}")
 
     # Get the 5 closest matches

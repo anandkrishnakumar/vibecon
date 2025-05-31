@@ -114,11 +114,7 @@ export default function MusicPlayer({ track, getTrackRecommendation }: MusicPlay
   };
 
   // Use currentlyPlayingTrack for display instead of the prop
-  const displayTrack = currentlyPlayingTrack || track || {
-    track_name: "No track",
-    artists: ["Capture vibe to start"],
-    album_art_url: ""
-  };
+  const displayTrack = currentlyPlayingTrack || track
 
   // Add a flag to prevent duplicate calls
   const [isTransitioning, setIsTransitioning] = useState(false);
@@ -184,12 +180,16 @@ export default function MusicPlayer({ track, getTrackRecommendation }: MusicPlay
     };
   }, [track, trackQueue, currentTrackIndex]);
 
+  // If no track is available, do not render the player
+  if (!displayTrack || !displayTrack.track_name) {
+    return null;
+  }
   return (
     <Box
       pos="relative"
       w="100%"
       style={{ aspectRatio: '1/1' }}
-      maw="350px"
+      maw="400px"
       mx="auto"
     >
       {/* Track info overlay */}

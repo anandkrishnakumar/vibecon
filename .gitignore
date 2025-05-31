@@ -47,3 +47,6 @@ next-env.d.ts
 # cache
 *.pyc
 *.cache
+
+# saved neural networks
+recommender/nn/saved_models

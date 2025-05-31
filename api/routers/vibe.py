@@ -1,4 +1,4 @@
-from utils import mock
+from utils.utils import mock
 from models import Track, Vibe
 from prompts import sys_prompt, sys_prompt_0
 from pydantic import BaseModel
@@ -8,6 +8,11 @@ from openai import OpenAI
 import os
 from typing import List, Dict, Union
 import sys
+import base64
+import torch
+
+from utils.image_nn import preprocess_image
+from utils.model_loader import load_model
 
 # add parent directory to sys.path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -15,6 +20,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 load_dotenv()
 router = APIRouter()
+model = load_model()
 
 
 class VibeRequest(BaseModel):
@@ -73,6 +79,8 @@ def mock_get_song_recommendation(image_url: str = "https://as2.ftcdn.net/v2/jpg/
     )
 
 # @router.post("/vibe")
+
+
 @mock
 def mock_get_vibe(request: VibeRequest) -> List[Dict[str, Union[str, float]]]:
     """
@@ -110,26 +118,59 @@ def mock_get_vibe(request: VibeRequest) -> List[Dict[str, Union[str, float]]]:
     ]
 
 
+# @router.post("/vibe")
+# def get_vibe(request: VibeRequest) -> List[Dict[str, Union[str, float]]]:
+#     """
+#     Get the vibe of a song based on an image URL.
+#     """
+#     client = setup_openai_client()
+#     messages = [
+#         construct_message(sys_prompt, "system"),
+#         construct_message(construct_image_prompt(request.image_url), "user")
+#     ]
+
+#     response = client.responses.parse(
+#         model="gpt-4.1-mini",
+#         input=messages,
+#         text_format=Vibe,
+#     )
+
+#     vibe_data = response.output_parsed
+
+#     return [
+#         {"aspect": aspect, "value": value}
+#         for aspect, value in vibe_data.model_dump().items()
+#     ]
+
+
 @router.post("/vibe")
 def get_vibe(request: VibeRequest) -> List[Dict[str, Union[str, float]]]:
     """
     Get the vibe of a song based on an image URL.
+    Uses the neural network model.
     """
-    client = setup_openai_client()
-    messages = [
-        construct_message(sys_prompt, "system"),
-        construct_message(construct_image_prompt(request.image_url), "user")
+    image_b64 = request.image_url
+
+    # process the image
+    x = preprocess_image(image_b64)
+
+    with torch.no_grad():
+        # get the vibe from the model
+        output = model(x).squeeze(0).numpy().tolist()
+
+    keys = ['danceability',
+            'energy',
+            'speechiness',
+            'acousticness',
+            'instrumentalness',
+            'valence']
+
+    vibe_output = [
+        {"aspect": key, "value": value}
+        for key, value in zip(keys, output)
     ]
 
-    response = client.responses.parse(
-        model="gpt-4.1-mini",
-        input=messages,
-        text_format=Vibe,
-    )
+    # manually add tempo for now
+    vibe_output.append({"aspect": "tempo", "value": 120.0})
 
-    vibe_data = response.output_parsed
-
-    return [
-        {"aspect": aspect, "value": value}
-        for aspect, value in vibe_data.model_dump().items()
-    ]
+    return vibe_output

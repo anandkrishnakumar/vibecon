@@ -3,7 +3,7 @@ import { toPng } from 'html-to-image';
 import { saveAs } from 'file-saver';
 
 interface ExportVibeCardProps {
-    cardRef: React.RefObject<HTMLDivElement>;
+    cardRef: React.RefObject<HTMLDivElement | null>;
 }
 
 export default function ExportVibeCard({ cardRef }: ExportVibeCardProps) {

@@ -18,14 +18,24 @@ class Vibe(BaseModel):
     valence: float = Field(description="A measure from 0.0 to 1.0 describing the musical positiveness conveyed by a track. Tracks with high valence sound more positive (e.g., happy, cheerful, euphoric), while tracks with low valence sound more negative (e.g., sad, depressed, angry).")
     tempo: float = Field(description="The overall estimated tempo of a track in beats per minute (BPM). In musical terminology, tempo is the speed or pace of a given piece and derives directly from the average beat duration.")
 
+
 class VibeSummary(BaseModel):
-    text: str = Field(description="A summary of the vibe in text form. Max 3 words. Make it sound cool. It must refer to the picture rather than the music. Don't use the word 'vibe' in the summary. Keep it lowercase.")
-    color: str = Field(description="A color representation of the vibe, typically in hex format.")
+    text: str = Field(description="""
+        Describe the visual aesthetic of the image in max 3 words.
+        Don't mention music or emotion directly.
+        Don't use generic adjectives like 'chill', 'calm', 'cozy', or 'vibe'.
+        Think visually — like someone naming a Tumblr post or moodboard.
+        Use unusual, evocative, or cinematic phrasing.
+        Examples: 'static motel silence', 'blue plastic dusk', 'humid velvet glow'
+    """)
+    color: str = Field(
+        description="A color representation of the vibe, typically in hex format.")
     emoji: str = Field(description="An emoji representing the vibe.")
 
     @validator('text')
     def text_must_be_lowercase(cls, v):
         return v.lower()
+
 
 class VibeData(BaseModel):
     vibe: Vibe

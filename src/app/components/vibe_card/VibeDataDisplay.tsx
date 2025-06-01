@@ -10,19 +10,16 @@ interface VibeDataDisplayProps {
     };
 }
 
-interface VibeDataDisplayProps {
-    vibe: {
-        danceability: number;
-        energy: number;
-        speechiness: number;
-        acousticness: number;
-        instrumentalness: number;
-        valence: number;
-        tempo?: number;
-    };
-}
-
 export default function VibeDataDisplay({ vibe }: VibeDataDisplayProps) {
+    const labelMapping: { [key: string]: string } = {
+        danceability: 'dance',
+        energy: 'energy',
+        speechiness: 'speech',
+        acousticness: 'acoustic',
+        instrumentalness: 'instrumental',
+        valence: 'valence'
+    };
+
     const vibeItems = [
         { emoji: '🕺', label: 'danceability', value: Math.round(vibe.danceability * 100) },
         { emoji: '🔋', label: 'energy', value: Math.round(vibe.energy * 100) },
@@ -37,7 +34,7 @@ export default function VibeDataDisplay({ vibe }: VibeDataDisplayProps) {
             {vibeItems.map((item) => (
                 <div key={item.label} className="flex flex-col items-center p-3 rounded-lg bg-purple-900/20 border border-purple-800/30">
                     <span className="text-2xl mb-1">{item.emoji}</span>
-                    <span className="text-xs text-gray-300 mb-2 capitalize">{item.label}</span>
+                    <span className="text-xs text-gray-300 mb-2">{labelMapping[item.label]}</span>
                     <div className="relative w-12 h-12">
                         <svg className="w-12 h-12 transform -rotate-90" viewBox="0 0 36 36">
                             <path

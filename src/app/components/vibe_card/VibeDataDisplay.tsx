@@ -36,17 +36,21 @@ export default function VibeDataDisplay({ vibe }: VibeDataDisplayProps) {
                     <span className="text-2xl mb-1">{item.emoji}</span>
                     <span className="text-xs text-gray-300 mb-2">{labelMapping[item.label]}</span>
                     <div className="relative w-12 h-12">
-                        <svg className="w-12 h-12 transform -rotate-90" viewBox="0 0 36 36">
+                        <svg 
+                            className="w-12 h-12" 
+                            viewBox="0 0 36 36"
+                            style={{ transform: 'rotate(-90deg)' }}
+                        >
+                            {/* Background circle */}
                             <path
-                                className="text-gray-700"
-                                stroke="currentColor"
+                                stroke="#374151" // gray-700 equivalent
                                 strokeWidth="3"
                                 fill="none"
                                 d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                             />
+                            {/* Progress circle */}
                             <path
-                                className="text-purple-400"
-                                stroke="currentColor"
+                                stroke="#a855f7" // purple-400 equivalent
                                 strokeWidth="3"
                                 strokeDasharray={`${item.value}, 100`}
                                 strokeLinecap="round"
@@ -55,7 +59,12 @@ export default function VibeDataDisplay({ vibe }: VibeDataDisplayProps) {
                             />
                         </svg>
                         <div className="absolute inset-0 flex items-center justify-center">
-                            <span className="text-xs font-bold text-purple-300">{item.value}</span>
+                            <span 
+                                className="text-xs font-bold"
+                                style={{ color: '#d8b4fe' }} // purple-300 equivalent
+                            >
+                                {item.value}
+                            </span>
                         </div>
                     </div>
                 </div>

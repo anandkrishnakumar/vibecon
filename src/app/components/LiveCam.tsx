@@ -13,12 +13,11 @@ const LiveCam = forwardRef<LiveCamRef, LiveCamProps>(({ onCameraReady }, ref) =>
   const [isCameraOn, setIsCameraOn] = useState(true);
 
   const setupCamera = async (facingMode: 'user' | 'environment' = currentFacingMode) => {
+    if (!isCameraOn) return; // Don't setup camera if it's supposed to be off
+    
     try {
-      // Stop existing stream
-      if (videoRef.current?.srcObject) {
-        const tracks = (videoRef.current.srcObject as MediaStream).getTracks();
-        tracks.forEach(track => track.stop());
-      }
+      // Stop existing stream first
+      stopCamera();
 
       const constraints = {
         video: {
@@ -40,6 +39,16 @@ const LiveCam = forwardRef<LiveCamRef, LiveCamProps>(({ onCameraReady }, ref) =>
     }
   };
 
+  const stopCamera = () => {
+    if (videoRef.current?.srcObject) {
+      const tracks = (videoRef.current.srcObject as MediaStream).getTracks();
+      tracks.forEach(track => {
+        track.stop(); // This actually stops the camera
+      });
+      videoRef.current.srcObject = null;
+    }
+  };
+
   const getAvailableCameras = async () => {
     try {
       const devices = await navigator.mediaDevices.enumerateDevices();
@@ -58,18 +67,14 @@ const LiveCam = forwardRef<LiveCamRef, LiveCamProps>(({ onCameraReady }, ref) =>
 
   const toggleCamera = async () => {
     if (isCameraOn) {
-      // Turn off camera
-      if (videoRef.current?.srcObject) {
-        const tracks = (videoRef.current.srcObject as MediaStream).getTracks();
-        tracks.forEach(track => track.stop());
-        videoRef.current.srcObject = null;
-      }
+      // Turn off camera completely
+      stopCamera();
       setIsCameraOn(false);
       onCameraReady?.(false);
     } else {
       // Turn on camera
-      await setupCamera(currentFacingMode);
       setIsCameraOn(true);
+      await setupCamera(currentFacingMode);
     }
   };
 
@@ -98,15 +103,14 @@ const LiveCam = forwardRef<LiveCamRef, LiveCamProps>(({ onCameraReady }, ref) =>
 
   useEffect(() => {
     getAvailableCameras();
-    setupCamera();
+    if (isCameraOn) {
+      setupCamera();
+    }
 
     return () => {
-      if (videoRef.current?.srcObject) {
-        const tracks = (videoRef.current.srcObject as MediaStream).getTracks();
-        tracks.forEach(track => track.stop());
-      }
+      stopCamera(); // Clean up on unmount
     };
-  }, [onCameraReady]);
+  }, [isCameraOn]); // Add isCameraOn to dependencies
 
   const hasMutipleCameras = availableCameras.length > 1;
 
@@ -116,17 +120,15 @@ const LiveCam = forwardRef<LiveCamRef, LiveCamProps>(({ onCameraReady }, ref) =>
 
       {/* Video element for live camera feed */}
       <div className="relative w-3/5 mx-auto">
-        <video
-          ref={videoRef}
-          autoPlay
-          muted
-          playsInline
-          className="w-full object-cover rounded-2xl shadow-lg"
-          style={{ display: isCameraOn ? 'block' : 'none' }}
-        />
-
-        {/* Camera off placeholder */}
-        {!isCameraOn && (
+        {isCameraOn ? (
+          <video
+            ref={videoRef}
+            autoPlay
+            muted
+            playsInline
+            className="w-full object-cover rounded-2xl shadow-lg"
+          />
+        ) : (
           <div className="w-full aspect-video bg-gray-800 rounded-2xl shadow-lg flex items-center justify-center">
             <div className="text-center text-gray-400">
               <svg
@@ -162,8 +164,8 @@ const LiveCam = forwardRef<LiveCamRef, LiveCamProps>(({ onCameraReady }, ref) =>
               stroke="currentColor"
               strokeWidth="2"
             >
-              <line x1="1" y1="1" x2="23" y2="23" />
-              <path d="M21 21H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h3m3-3h6l2 3h4a2 2 0 0 1 2 2v9.34m-7.72-2.06a4 4 0 1 1-5.56-5.56" />
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2v11z" />
+              <circle cx="12" cy="13" r="4" />
             </svg>
           ) : (
             <svg
@@ -174,13 +176,13 @@ const LiveCam = forwardRef<LiveCamRef, LiveCamProps>(({ onCameraReady }, ref) =>
               stroke="currentColor"
               strokeWidth="2"
             >
-              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2v11z" />
-              <circle cx="12" cy="13" r="4" />
+              <line x1="1" y1="1" x2="23" y2="23" />
+              <path d="M21 21H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h3m3-3h6l2 3h4a2 2 0 0 1 2 2v9.34m-7.72-2.06a4 4 0 1 1-5.56-5.56" />
             </svg>
           )}
         </button>
 
-        {/* Camera switch button - now directly on video */}
+        {/* Camera switch button - only show when camera is on */}
         {hasMutipleCameras && isCameraOn && (
           <button
             onClick={switchCamera}

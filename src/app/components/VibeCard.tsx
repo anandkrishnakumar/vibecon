@@ -2,10 +2,12 @@ import { Card } from "@mantine/core";
 import { VibeCardProps } from "../types";
 import VibeSummaryDisplay from "./vibe_card/VibeSummaryDisplay";
 import VibeDataDisplay from "./vibe_card/VibeDataDisplay";
-import { useEffect, useState } from "react";
+import ExportVibeCard from "./vibe_card/ExportVibeCard";
+import { useEffect, useState, useRef } from "react";
 
 export default function VibeCard({ data }: VibeCardProps) {
     const [animationKey, setAnimationKey] = useState(0);
+    const cardRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         if (data) {
@@ -14,13 +16,14 @@ export default function VibeCard({ data }: VibeCardProps) {
     }, [data]);
 
     if (!data) {
-        return null; // Don't render anything if no data is available
+        return null;
     }
 
     const { vibe, summary } = data;
 
     return (
         <Card
+            ref={cardRef}
             key={animationKey}
             shadow="md"
             padding="lg"
@@ -37,6 +40,7 @@ export default function VibeCard({ data }: VibeCardProps) {
         >
             <VibeSummaryDisplay summary={{ ...summary, emoji: summary.emoji ?? "" }} />
             <VibeDataDisplay vibe={vibe} />
+            <ExportVibeCard cardRef={cardRef} />
         </Card>
     );
 }

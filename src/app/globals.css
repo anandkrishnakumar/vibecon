@@ -20,7 +20,7 @@
 }
 
 body {
-  background: var(--background);
+  background: #000000; /* Always black instead of var(--background) */
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
@@ -28,5 +28,16 @@ body {
 @layer base {
   html {
     @apply bg-black;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

@@ -33,7 +33,7 @@ export default function VibeDataDisplay({ vibe }: VibeDataDisplayProps) {
     ];
 
     return (
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-6 gap-6">
             {vibeItems.map((item) => (
                 <div key={item.label} className="flex flex-col items-center p-3 rounded-lg bg-purple-900/20 border border-purple-800/30">
                     <span className="text-2xl mb-1">{item.emoji}</span>

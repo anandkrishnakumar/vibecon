@@ -14,6 +14,7 @@ export default function MusicPlayer({ track, getTrackRecommendation }: MusicPlay
   const [trackQueue, setTrackQueue] = useState<Track[]>([]);
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
   const [currentlyPlayingTrack, setCurrentlyPlayingTrack] = useState<Track | null>(null); // Add this!
+  const [animationKey, setAnimationKey] = useState(0);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const { makeAuthenticatedRequest, handleTokenUpdate, playTrack, pausePlayback } = useSpotifyPlayer();
@@ -25,6 +26,7 @@ export default function MusicPlayer({ track, getTrackRecommendation }: MusicPlay
       setIsPlaying(false); // Reset playing state when a new track is set
       setTrackQueue([track]); // Initialize queue with the new track
       setCurrentTrackIndex(0); // Reset index to start with the new track
+      setAnimationKey(prev => prev + 1); // Trigger fade-in animation
     }
   }, [track]);
 
@@ -186,10 +188,14 @@ export default function MusicPlayer({ track, getTrackRecommendation }: MusicPlay
   }
   return (
     <Box
+      key={animationKey}
       pos="relative"
       w="100%"
-      style={{ aspectRatio: '1/1' }}
-      maw="400px"
+      style={{
+        aspectRatio: '1/1',
+        animation: 'fadeIn 0.6s ease-in-out'
+      }}
+      maw="300px"
       mx="auto"
     >
       {/* Track info overlay */}

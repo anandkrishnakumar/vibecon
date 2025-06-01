@@ -79,24 +79,36 @@ export default function Home() {
     );
   } else {
     return (
-      <div className="min-h-screen bg-black text-white">
-        <Image
-          src="/vibecon.svg"
-          alt="VibeCon Logo"
-          width={400}
-          height={400}
-          className="mx-auto pt-0"
-          priority
-        />
-        <Spin
-          onVibeDataChange={handleVibeDataChange}
-          onTrackRecommendation={handleTrackRecommendation}
-        />
-        <Group grow h={300}>
-          <VibeCard data={vibeData} />
-          <MusicPlayer track={currentTrack} getTrackRecommendation={getTrackRecommendation} />
-        </Group>
+  <div className="min-h-screen bg-black text-white">
+    <Image
+      src="/vibecon.svg"
+      alt="VibeCon Logo"
+      width={400}
+      height={400}
+      className="mx-auto pt-0"
+      priority
+    />
+    <Spin
+      onVibeDataChange={handleVibeDataChange}
+      onTrackRecommendation={handleTrackRecommendation}
+    />
+    <Group grow h={300} style={{ transition: 'all 0.6s ease-in-out' }}>
+      <div style={{ 
+        transition: 'all 0.6s ease-in-out',
+        opacity: vibeData ? 1 : 0,
+        transform: vibeData ? 'translateX(0)' : 'translateX(50px)'
+      }}>
+        <VibeCard data={vibeData} />
       </div>
-    );
+      <div style={{ 
+        transition: 'all 0.6s ease-in-out',
+        opacity: currentTrack ? 1 : 0,
+        transform: currentTrack ? 'translateX(0)' : 'translateX(-50px)'
+      }}>
+        <MusicPlayer track={currentTrack} getTrackRecommendation={getTrackRecommendation} />
+      </div>
+    </Group>
+  </div>
+);
   }
 }
